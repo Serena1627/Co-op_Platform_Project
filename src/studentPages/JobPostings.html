@@ -5,13 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Job Postings</title>
         <link rel="stylesheet" href="../styles/JobPostings.css">
-        <link rel="stylesheet" href="../../components/navbar.css">
+        <link rel="stylesheet" href="../components/navbar.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
         
     </head>
     <body>
         <script>
-        fetch('../../components/Navbar.html')
+        fetch('../components/Navbar.html')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
