@@ -6,6 +6,7 @@
         <title>Job Postings</title>
         <link rel="stylesheet" href="../styles/JobPostings.css">
         <link rel="stylesheet" href="../../components/navbar.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
         
     </head>
     <body>
@@ -17,6 +18,11 @@
             })
             .catch(err => console.error('Navbar load error:', err));
         </script>
+
+        <div class="toolbar">
+            <span><strong>Available Jobs</strong></span>
+            <button class="filter-button"><i class="fa-solid fa-filter"></i></button>
+        </div>
         <table class="postings-table">
             <thead>
                 <tr>
@@ -62,9 +68,45 @@
                     <td><button class="add-btn">+</button></td>
                 </tr>
                 <tr>
-                    <td>Mama's Kitched</td>
+                    <td>Mama's Kitchen</td>
                     <td>WebApp Development Coop</td>
                     <td>3.5/5</td>
+                    <td>Remote</td>
+                    <td>Unpaid</td>
+                    <td><button class="add-btn">+</button></td>
+                </tr>
+                <tr>
+                    <td>CloudFlare</td>
+                    <td>WebApp Development Coop</td>
+                    <td>4.6/5</td>
+                    <td>Bellevue, Washington</td>
+                    <td>$30.55+</td>
+                    <td><button class="add-btn">+</button></td>
+                </tr><tr>
+                    <td>Disney</td>
+                    <td>UI coop</td>
+                    <td>3.0/5</td>
+                    <td>Remote</td>
+                    <td>$28.00</td>
+                    <td><button class="add-btn">+</button></td>
+                </tr><tr>
+                    <td>Drexel</td>
+                    <td>Security Coop</td>
+                    <td>4.3/5</td>
+                    <td>Philadelphia, PA</td>
+                    <td>$22.50</td>
+                    <td><button class="add-btn">+</button></td>
+                </tr><tr>
+                    <td>CHUBB</td>
+                    <td>Software Development Coop</td>
+                    <td>4.5/5</td>
+                    <td>Philadelphi, PA</td>
+                    <td>$28.00</td>
+                    <td><button class="add-btn">+</button></td>
+                </tr><tr>
+                    <td>University of Pennsylvania</td>
+                    <td>Quality Assurance Coop</td>
+                    <td>2.6/5</td>
                     <td>Remote</td>
                     <td>Unpaid</td>
                     <td><button class="add-btn">+</button></td>
