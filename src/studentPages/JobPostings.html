@@ -5,10 +5,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Job Postings</title>
         <link rel="stylesheet" href="../styles/JobPostings.css">
-        <link rel="stylesheet" href="../styles/NavBar.css">
+        <link rel="stylesheet" href="../../components/navbar.css">
         
     </head>
     <body>
+        <script>
+        fetch('../../components/Navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(err => console.error('Navbar load error:', err));
+        </script>
         <table class="postings-table">
             <thead>
                 <tr>
