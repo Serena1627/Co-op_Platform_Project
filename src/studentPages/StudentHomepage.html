@@ -5,16 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Homepage</title>
     <link rel="stylesheet" href="../styles/StudentHomepage.css">
+    <link rel="stylesheet" href="../styles/NavBar.css">
+    <nav class="navbar">
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li>
+                    <a href="#">Jobs</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Job Postings</a></li>
+                        <li><a href="#">External Jobs</a></li>
+                        <li><a href="#">Job Archives</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">History</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Employment Record</a></li>
+                        <li><a href="#">Ranking History</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">My Applications</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Current Applications</a></li>
+                        <li><a href="#">Resume Upload</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="messages-btn">
+                <a href="#"></a>
+            </div>
+        </div>
+    </nav>
 </head>
 <body>
-    <div id="top-bar" class="topnav">
-        <a class="active" href="#home">Home</a>
-        <a href="#jobs">Jobs</a>
-        <a href="#history">History</a>
-        <a href="#my-applications">My Applications</a>
-        <a href="#messages">Messages</a>
-        <a href="#alerts">Alerts</a>
-    </div>
     <div id="intro-section">
         <img id="dragon" src="drexel-dragon.png" alt="Drexel Dragon">
         <div id="intro-text">
