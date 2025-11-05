@@ -1,0 +1,99 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    margin: 30px auto;
+    background-color: #f9f9f9;
+}
+
+#top-bar {
+    padding: 10px 15px;
+    font-size: 25px;
+    border-bottom: 3px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    background-color: #ffffff;
+    z-index: 100;
+}
+
+#upload-section {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.upload-btn {
+    padding: 10px 25px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+}
+
+.upload-btn:hover {
+    background-color: #45a049;
+}
+
+h2 {
+    margin-left: 10px;
+    font-size: 22px;
+}
+
+.resume-list {
+    list-style: none;
+    padding: 0;
+}
+
+.resume-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin: 10px 10px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.default-btn {
+    background-color: #2196F3; 
+    border: none;
+    color: white;
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.default-btn:hover {
+    background-color: #1976D2;
+}
+
+.delete-btn {
+    background-color: #ff4d4d; 
+    border: none;
+    color: white;
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background-color: #e60000;
+}
