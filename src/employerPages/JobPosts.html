@@ -88,5 +88,31 @@
                 </tr>
             </tbody>
         </table>
+
+        <div id="popup-overlay" class="popup-overlay hidden">
+    <div class="popup-form">
+        <h2>Add Job Posting</h2>
+
+        <label>Job Title</label>
+        <input type="text" id="form-job-title">
+
+        <label>Location</label>
+        <input type="text" id="form-location">
+
+        <label>Hourly Pay</label>
+        <input type="number" id="form-hourly-pay">
+
+        <label>Company Name</label>
+        <input type="text" id="form-company-name">
+
+        <label>Company Rating</label>
+        <input type="number" id="form-company-rating" min="1" max="5">
+
+        <div class="popup-buttons">
+            <button id="popup-save">Save</button>
+            <button id="popup-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
     </body>
 </html>

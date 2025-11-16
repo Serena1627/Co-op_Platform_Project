@@ -8,10 +8,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data, error } = await supabaseClient
         .from("job_listings")
         .select(`
-            companies:company_id ( name, rating ),
             job_title,
             location,
-            hourly_pay
+            hourly_pay,
+            company:company_id (
+                name,
+                rating
+            )
         `);
 
     if (error) {
