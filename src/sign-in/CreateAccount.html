@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h2 class="header">Create An Account</h2>
-        <form>
+        <form id="sign-up-form">
             <label for="firstName">First Name</label>
             <input type="text" id="firstName" name="firstName" required>
 
@@ -20,7 +20,7 @@
             <input type="email" id="email" name="email" required>
 
             <label for="password">New Password</label>
-            <input type="password" id="password" name="password" patter=".{8,}" title="Password must be at least 8 characters long"required>
+            <input type="password" id="password" name="password" pattern=".{8,}" title="Password must be at least 8 characters long" required>
 
             <div class="account-type"> 
                 <p>Select Account Type:</p>
@@ -28,9 +28,10 @@
                 <label><input type="radio" name="accountType" value="employer">Employer</label>
             </div>
 
-            <button class="the-button"type="submit">Sign Up</button>
+            <button class="the-button" type="submit">Sign Up</button>
         
         </form>
     </div>
+    <script src="CreateAccount.js"></script>
 </body>
 </html>
