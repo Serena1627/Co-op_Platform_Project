@@ -3,6 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+        <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
         <script type="module" src="../supabaseClient.js"></script>
         <script type="module" src="JobPostings.js"></script>
         <title>Job Postings</title>
@@ -21,24 +23,16 @@
             })
             .catch(err => console.error('Navbar load error:', err));
         </script>
-
-        <div class="toolbar">
-            <span><strong>Available Jobs</strong></span>
-            <button class="filter-button"><i class="fa-solid fa-filter"></i></button>
+        </br>
+        <div id="custom-filter-container" class="custom-filter-container">
+            <div class="filter-header">
+                <strong>Filter Jobs</strong>
+                <button id="add-filter-btn" class="btn-primary">+ Add Filter</button>
+                <button id="clear-filters-btn" class="btn-secondary">Clear All</button>
+            </div>
+            <div id="filter-rows" class="filter-rows"></div>
         </div>
-        <table class="postings-table">
-            <thead>
-                <tr>
-                <th>Company Name</th>
-                <th>JobTitle</th>
-                <th>Company Rating</th>
-                <th>Location</th>
-                <th>Pay(/hr)</th>
-                <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-        </table>
+        <div id="student-jobs" class="postings-table"></div>
 
     </body>
 </html>
