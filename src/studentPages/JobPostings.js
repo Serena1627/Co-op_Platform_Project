@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             location,
             hourly_pay,
             company:company_id (
-                name,
+                company_name,
                 rating
             )
         `);
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     data.forEach(row => {
-        row.company_name = row.company?.name || "";
+        row.company_name = row.company?.company_name || "";
         row.company_rating = row.company?.rating ?? null;
         row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : null;
     });
