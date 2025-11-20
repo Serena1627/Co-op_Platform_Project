@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../styles/CreateAccount.css">
+    <title>Create An Account</title>
+</head>
+<body>
+    <div class="container">
+        <h2 class="header">Create An Account</h2>
+        <form>
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" name="firstName" required>
+
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" name="lastName" required>
+           
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">New Password</label>
+            <input type="password" id="password" name="password" patter=".{8,}" title="Password must be at least 8 characters long"required>
+
+            <div class="account-type"> 
+                <p>Select Account Type:</p>
+                <label><input type="radio" name="accountType" value="student" required>Student</label>
+                <label><input type="radio" name="accountType" value="employer">Employer</label>
+            </div>
+
+            <button class="the-button"type="submit">Sign Up</button>
+        
+        </form>
+    </div>
+</body>
+</html>
