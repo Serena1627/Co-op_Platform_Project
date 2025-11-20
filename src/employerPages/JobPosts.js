@@ -3,7 +3,6 @@ import { supabaseClient } from "../supabaseClient.js";
 let currentEditingId = null;
 let table = null;
 
-// ===== FORM MANAGEMENT =====
 function showForm(jobId = null) {
     document.getElementById('tableView').classList.add('hidden');
     document.getElementById('formView').classList.add('active');
@@ -36,7 +35,6 @@ async function loadJobData(jobId) {
         
         if (error) throw error;
         
-        // Populate form with job data
         document.getElementById('job_title').value = data.job_title || '';
         document.getElementById('location').value = data.location || '';
         document.getElementById('job_description').value = data.job_description || '';
@@ -94,14 +92,13 @@ async function saveJobPosting(event) {
             alert('Job posting created!');
         }
         hideForm();
-        loadTable(); // Refresh table
+        loadTable();
     } catch (error) {
         console.error('Error saving job posting:', error);
         alert('Error saving job posting. Check console for details.');
     }
 }
 
-// ===== SUPABASE OPERATIONS =====
 async function insertJobPosting(formData) {
 
     const { data, error } = await supabaseClient
@@ -150,7 +147,6 @@ async function deleteJobPosting(jobId) {
     }
 }
 
-// ===== TABLE SETUP =====
 async function loadTable() {
     const { data, error } = await supabaseClient
         .from("job_listings")
@@ -225,12 +221,10 @@ async function loadTable() {
     });
 }
 
-// ===== EXPOSE TO WINDOW =====
 window.showForm = showForm;
 window.hideForm = hideForm;
 window.saveJobPosting = saveJobPosting;
 
-// ===== INITIALIZE =====
 document.addEventListener("DOMContentLoaded", async () => {
     loadTable();
 });
