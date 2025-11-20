@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="../supabaseClient.js"></script>
+    <script type="module" src="StudentProfileForm.js"></script>
     <title>Student Profile</title>
-    <link rel="stylesheet" href="StudentProfile.css">
+    <link rel="stylesheet" href="StudentProfileForm.css">
 </head>
 <body>
 
@@ -39,8 +41,9 @@
             <select id="college_year" required>
                 <option value="" disabled selected>Select year</option>
                 <option value="Sophomore">Sophomore</option>
-                <option value="Pre-junior">Pre-Junior</option>
+                <option value="Pre-Junior">Pre-Junior</option>
                 <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
             </select>
 
             <label>GPA</label>
@@ -56,8 +59,5 @@
             <button type="submit">Submit</button>
         </form>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="StudentProfile.js"></script>
 </body>
 </html>

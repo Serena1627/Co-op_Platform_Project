@@ -1,6 +1,4 @@
-const SUPABASE_URL = "https://xvdbeuqgtyonbbsdkcqu.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_YCdz1MriD7YHIEP3LmybDA_CtlDZPo1"; 
-const supabaseAccess = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { supabaseClient } from "../supabaseClient.js";
 
 document.getElementById("student-form").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -16,7 +14,7 @@ document.getElementById("student-form").addEventListener("submit", async functio
         coop_cycle: document.getElementById("coop_cycle").value,
     };
 
-    const { data, error } = await supabaseAccess
+    const { data, error } = await supabaseClient
         .from('student_profile')  
         .insert([studentData]);
 
