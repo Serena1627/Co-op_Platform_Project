@@ -3,6 +3,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+        <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+        <script type="module" src="../supabaseClient.js"></script>
+        <script type="module" src="JobPostings.js"></script>
         <title>Job Postings</title>
         <link rel="stylesheet" href="../styles/JobPostings.css">
         <link rel="stylesheet" href="../components/navbar.css">
@@ -10,6 +14,7 @@
         
     </head>
     <body>
+        <div id="navbar-container"></div>
         <script>
         fetch('../components/Navbar.html')
             .then(response => response.text())
@@ -18,100 +23,16 @@
             })
             .catch(err => console.error('Navbar load error:', err));
         </script>
-
-        <div class="toolbar">
-            <span><strong>Available Jobs</strong></span>
-            <button class="filter-button"><i class="fa-solid fa-filter"></i></button>
+        </br>
+        <div id="custom-filter-container" class="custom-filter-container">
+            <div class="filter-header">
+                <strong>Filter Jobs</strong>
+                <button id="add-filter-btn" class="btn-primary">+ Add Filter</button>
+                <button id="clear-filters-btn" class="btn-secondary">Clear All</button>
+            </div>
+            <div id="filter-rows" class="filter-rows"></div>
         </div>
-        <table class="postings-table">
-            <thead>
-                <tr>
-                <th>Company Name</th>
-                <th>JobTitle</th>
-                <th>Company Rating</th>
-                <th>Location</th>
-                <th>Pay(/hr)</th>
-                <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <tr>
-                    <td>Amazon</td>
-                    <td>Systems Programmer Coop - Robotics</td>
-                    <td>4.2/5</td>
-                    <td>Boston, Massachusetts</td>
-                    <td>$40.75</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr>
-                <tr>
-                    <td>Susquehanna International Group</td>
-                    <td>Software Engineering Coop</td>
-                    <td>3.8/5</td>
-                    <td>Bala Cynwyd, Pennsylvania</td>
-                    <td>$45.00+</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr>
-                <tr>
-                    <td>Tinder</td>
-                    <td>UI/UX Coop</td>
-                    <td>2.1/5</td>
-                    <td>San Francisco, California</td>
-                    <td>$39.00</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr>
-                <tr>
-                    <td>Apollo</td>
-                    <td>Data Science Coop</td>
-                    <td>4.7/5</td>
-                    <td>New York, New York</td>
-                    <td>$38.00</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr>
-                <tr>
-                    <td>Mama's Kitchen</td>
-                    <td>WebApp Development Coop</td>
-                    <td>3.5/5</td>
-                    <td>Remote</td>
-                    <td>Unpaid</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr>
-                <tr>
-                    <td>CloudFlare</td>
-                    <td>WebApp Development Coop</td>
-                    <td>4.6/5</td>
-                    <td>Bellevue, Washington</td>
-                    <td>$30.55+</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr><tr>
-                    <td>Disney</td>
-                    <td>UI coop</td>
-                    <td>3.0/5</td>
-                    <td>Remote</td>
-                    <td>$28.00</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr><tr>
-                    <td>Drexel</td>
-                    <td>Security Coop</td>
-                    <td>4.3/5</td>
-                    <td>Philadelphia, PA</td>
-                    <td>$22.50</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr><tr>
-                    <td>CHUBB</td>
-                    <td>Software Development Coop</td>
-                    <td>4.5/5</td>
-                    <td>Philadelphi, PA</td>
-                    <td>$28.00</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr><tr>
-                    <td>University of Pennsylvania</td>
-                    <td>Quality Assurance Coop</td>
-                    <td>2.6/5</td>
-                    <td>Remote</td>
-                    <td>Unpaid</td>
-                    <td><button class="add-btn">+</button></td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="student-jobs" class="postings-table"></div>
+
     </body>
 </html>
