@@ -60,7 +60,7 @@ resumeInput.addEventListener("change", async (event) => {
         return;
     }
 
-    let {error: dbError } = await supabaseClient.from("resume_files")
+    let {error: dbError } = await supabaseClient
         .from("resume_files")
         .insert({
             user_id: user.id,
@@ -95,11 +95,26 @@ async function loadResumes() {
     }
 
     resumeList.innerHTML = "";
-    data.forEach(resume => {
+
+    for (let resume of data) {
+        let { data: signedUrlData, error: signedError } = await supabaseClient
+            .storage
+            .from("resumes")
+            .createSignedUrl(resume.file_path, 60 * 60);
+
+        if (signedError) {
+            console.error("Error creating signed URL:", signedError);
+            continue;
+        }
+
+        let url = signedUrlData.signedUrl;
+
         let li = document.createElement("li");
-        li.textContent = resume.file_path;
+
+        li.innerHTML = `<a href="${url}" target="_blank">${resume.file_path.split("/").pop()}</a>`;
+        
         resumeList.appendChild(li);
-    });
+    }
 
     
 }
