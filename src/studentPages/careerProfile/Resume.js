@@ -146,9 +146,67 @@ async function loadResumes() {
         let url = signedUrlData.signedUrl;
 
         let li = document.createElement("li");
+        li.className = "resume-item";
 
-        li.innerHTML = `<a href="${url}" target="_blank">${resume.file_path.split("/").pop()}</a>`;
-        
+        let leftContainer = document.createElement("div");
+        leftContainer.className = "resume-left";
+
+        let defaultCheck = document.createElement("input");
+        defaultCheck.type = "radio";
+        defaultCheck.name = "default-resume";
+        defaultCheck.checked = resume.is_default == true;
+
+        defaultCheck.addEventListener("change", async () => {
+            await supabaseClient
+                .from("resume_files")
+                .update({ is_default: false})
+                .eq("user_id", user.id);
+
+            await supabaseClient
+                .from("resume_files")
+                .update({ is_default: true})
+                .eq("id", resume.id)
+            
+            document.querySelectorAll("input[name='default-resume']")
+                .forEach(rb => rb.checked = false);
+            
+            defaultCheck.checked = true;
+   
+        });
+
+        let link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.innerText = resume.name || resume.file_path.split("/").pop();
+        link.className = "resume-link";
+
+        leftContainer.appendChild(defaultCheck);
+        leftContainer.appendChild(link);
+
+        let deleteButton = document.createElement("button");
+        deleteButton.className = "delete-button";
+        deleteButton.innerText = "Delete";
+
+        deleteButton.addEventListener("click", async () => {
+            if (!confirm("Delete this resume?")) {
+                return;
+            }
+
+            await supabaseClient.storage
+                .from("resumes")
+                .remove([ resume.file_path ]);
+
+            await supabaseClient
+                .from("resume_files")
+                .delete()
+                .eq("id", resume.id);
+            
+            li.remove();
+        });
+
+        //li.innerHTML = `<a href="${url}" target="_blank">${resume.file_path.split("/").pop()}</a>`;
+        li.appendChild(leftContainer);
+        li.appendChild(deleteButton);
         resumeList.appendChild(li);
     }
 
