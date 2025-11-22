@@ -4,6 +4,14 @@ let uploadLocalButton = document.getElementById("upload-local-btn");
 let uploadCloudButton = document.getElementById("upload-cloud-btn")
 let resumeInput = document.getElementById("resume-input");
 let resumeList = document.getElementById("resume-list");
+let previewOverlay = document.getElementById("resume-preview-overlay");
+let previewFrame = document.getElementById("resume-preview-frame");
+let resumeInputTitle = document.getElementById("resume-title");
+let confirmUploadButton = document.getElementById("confirm-upload-btn");
+let cancelUploadButton = document.getElementById("cancel-upload-btn");
+let closeButton = document.querySelector(".close-btn");
+let selectedFile = null;
+
 
 let test_email = "na929@drexel.edu";
 let test_password = "1234567890";
@@ -31,21 +39,29 @@ async function loginUser() {
 
 uploadLocalButton.addEventListener("click", () => {
     resumeInput.click();
-})
+});
 
-resumeInput.addEventListener("change", async (event) => {
-    let file = event.target.files[0];
-    if (!file) return;
+resumeInput.addEventListener("change", (event) => {
+    selectedFile = event.target.files[0];
+    if (!selectedFile) return;
 
-    //let { data : { user}} = await supabaseClient.auth.getUser();
-    
-    
     if (!user) {
-        alert("You must be logged in to upload a resume.");
+        alert("Must be logged in to upload a resume.")
+    }
+
+    previewOverlay.style.display = "block";
+
+    previewFrame.src = URL.createObjectURL(selectedFile);
+
+    resumeInputTitle.value = "";
+});
+
+confirmUploadButton.addEventListener("click", async (event) => {
+    let file = selectedFile;
+    if (!resumeInputTitle.value.trim()) {
+        alert("Please enter a title for your resume.");
         return;
     }
-        
-    
 
     let fileName = encodeURIComponent(file.name);
     let filePath = `resume/${user.id}/${Date.now()}_${fileName}`;
@@ -64,7 +80,8 @@ resumeInput.addEventListener("change", async (event) => {
         .from("resume_files")
         .insert({
             user_id: user.id,
-            file_path: filePath
+            file_path: filePath,
+            name: resumeInputTitle.value.trim()
     });
 
     if (dbError) {
@@ -75,10 +92,29 @@ resumeInput.addEventListener("change", async (event) => {
 
 
     alert("Resume uploaded!");
+    previewOverlay.style.display = "none";
+    selectedFile = null;
 
     loadResumes();
 
 });
+
+cancelUploadButton.addEventListener("click", () => {
+    previewOverlay.style.display = "none";
+    selectedFile = null;
+});
+
+closeButton.addEventListener("click", () => {
+    previewOverlay.style.display = "none";
+    selectedFile = null;
+});
+
+window.addEventListener("click", (e) => {
+    if (e.target === previewOverlay) {
+        previewOverlay.style.display = "none";
+        selectedFile = null;
+    }
+})
 
 async function loadResumes() {
     if (!user) return;
