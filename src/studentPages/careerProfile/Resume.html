@@ -5,6 +5,7 @@
     <title>Resume Manager</title>
     <link rel="stylesheet" href="Resume.css">
     <link rel="stylesheet" href="../../components/navbar.css">
+    <script type="module" src="Resume.js" defer></script>
 </head>
 <body>
     
@@ -17,7 +18,20 @@
             })
             .catch(err => console.error('Navbar load error:', err));
     </script>
+    <div class="body-container">    
+        <div id="upload-section">
+            <button id="upload-local-btn" class="upload-btn">Upload from Local</button>
+            <button id="upload-cloud-btn" class="upload-btn">Upload from Cloud</button>
+        </div>
+        <input type="file" id="resume-input" accept=".pdf" style="display:none;">
 
+        <h2>Current Resumes</h2>
+        <ul id=resume-list" class="resume-list"></ul>
+
+
+
+    </div>
+    <!--
     <div class="body-container">    
         <div id="upload-section">
             <button class="upload-btn">Upload from Local</button>
@@ -49,5 +63,6 @@
             </li>
         </ul>
     </div>
+-->
 </body>
 </html>
