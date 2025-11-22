@@ -8,22 +8,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const firstName = document.getElementById("firstName").value;
         const lastName = document.getElementById("lastName").value;
-        const emailAddress = document.getElementById("email").value;
+        const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const accountType = document.querySelector('input[name="accountType"]:checked').value;
 
-        let { data, error } = await supabaseClient.auth.signUp({
-            email: emailAddress,
+        let { error } = await supabaseClient.auth.signUp({
+            email: email,
             password: password,
+            options: {
+                data: {
+                    firstName,
+                    lastName,
+                    accountType
+                },
+                // Add email redirect for confirmation
+                emailRedirectTo: `${window.location.origin}/src/sign-in/confirm.html`
+            }
         });
-        console.log(accountType);
 
         if (error) {
             alert("Signup failed: " + error.message);
             return;
         }
 
-        form.reset();
-        alert("Account created!");
+        // Only go to check email page
+        window.location.assign("./CheckEmail.html");
     });
 });
