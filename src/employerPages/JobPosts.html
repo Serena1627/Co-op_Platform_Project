@@ -3,90 +3,175 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+        <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+        <script type="module" src="../supabaseClient.js"></script>
+        <script type="module" src="JobPosts.js"></script>
         <title>Job Posts</title>
-        <link rel="stylesheet" href="../styles/JobPostings.css">
+        <link rel="stylesheet" href="../styles/JobPosts.css">
         <link rel="stylesheet" href="../styles/AdminIndex.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
     <body>
-        
-        </br>
-        <button class="add-btn message-btn btn"><i class="fa fa-envelope-o"></i> Messages</button>
-        </br></br></br>
-        <button class="add-btn btn"><i class="fa fa-plus"></i> Create job post</button>
+        <div class="table-view" id="tableView">
+            </br>
+            <button class="add-btn message-btn btn"><i class="fa fa-envelope-o"></i> Messages</button>
+            </br></br></br>
+            <button class="add-btn btn" onclick="window.showForm()"><i class="fa fa-plus"></i> Create job post</button>
 
-        <table class="postings-table">
-            <thead>
-                <tr>
-                    <th>Job Title</th>
-                    <th>Location</th>
-                    <th>Pay(/hr)</th>
-                    <th>Number of Applicants</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <tr>
-                    <td>Systems Programmer Co-op - Robotics</td>
-                    <td>Boston, Massachusetts</td>
-                    <td>$40.75</td>
-                    <td>23</td>
-                    <td>
-                        <button class="add-btn"><i class="fa fa-pencil"></i></button>
-                        <button class="add-btn"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Software Engineering Co-op</td>
-                    <td>Bala Cynwyd, Pennsylvania</td>
-                    <td>$45.00</td>
-                    <td>55</td>
-                    <td>
-                        <button class="add-btn"><i class="fa fa-pencil"></i></button>
-                        <button class="add-btn"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>UI/UX Co-op</td>
-                    <td>San Francisco, California</td>
-                    <td>$39.00</td>
-                    <td>15</td>
-                    <td>
-                        <button class="add-btn"><i class="fa fa-pencil"></i></button>
-                        <button class="add-btn"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Data Science Co-op</td>
-                    <td>New York, New York</td>
-                    <td>$38.00</td>
-                    <td>32</td>
-                    <td>
-                        <button class="add-btn"><i class="fa fa-pencil"></i></button>
-                        <button class="add-btn"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>WebApp Development Co-op</td>
-                    <td>Remote</td>
-                    <td>Unpaid</td>
-                    <td>10</td>
-                    <td>
-                        <button class="add-btn"><i class="fa fa-pencil"></i></button>
-                        <button class="add-btn"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Research Co-op</td>
-                    <td>Philadelphia, Pennsylvania</td>
-                    <td>Unpaid</td>
-                    <td>7</td>
-                    <td>
-                        <button class="add-btn"><i class="fa fa-pencil"></i></button>
-                        <button class="add-btn"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <div id="student-jobs" class="postings-table"></div>
+        </div>
+
+        <div class="form-view" id="formView">
+            <div class="form-container">
+                <div class="form-header">
+                    <h1 id="formTitle">Create Job Posting</h1>
+                    <button class="close-form" onclick="window.hideForm()"><i class="fa fa-times"></i></button>
+                </div>
+
+                <form id="jobForm">
+                    <div class="form-section">
+                        <h2>Basic Information</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="required">Job Title</label>
+                                <input type="text" id="job_title" placeholder="e.g., Software Engineer" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Location</label>
+                                <input type="text" id="location" placeholder="City, State or Remote" required>
+                            </div>
+                        </div>
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label>Job Description</label>
+                                <textarea id="job_description" placeholder="Describe the job responsibilities..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Qualifications & Requirements</h2>
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label>Job Qualifications</label>
+                                <textarea id="job_qualifications" placeholder="List required and preferred qualifications..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Desired Majors</label>
+                                <input type="text" id="desired_majors" placeholder="e.g., Computer Science, Engineering" class="array-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Experience Level</label>
+                                <input type="text" id="experience_level" placeholder="e.g., Entry Level, Intermediate" class="array-input">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Minimum GPA</label>
+                                <input type="number" id="gpa" placeholder="3.0" min="0" max="4" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Requires Citizenship</label>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="requires_citizenship">
+                                    <span>US Citizenship required</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Compensation & Positions</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="required">Is Paid</label>
+                                <select id="is_paid" required>
+                                    <option value="">-- Select --</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Hourly Pay</label>
+                                <input type="number" id="hourly_pay" placeholder="$00.00" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Is Range</label>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="is_range">
+                                    <span>Salary is a range</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Number of Open Positions</label>
+                                <input type="number" id="no_of_open_positions" placeholder="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Is Full Time</label>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="is_full_time">
+                                    <span>Full-time position</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Job Rating</label>
+                                <input type="number" id="job_rating" placeholder="4.5" min="0" max="5" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Logistics</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Requires In-Person Interviews</label>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="requires_in_person_interviews">
+                                    <span>In-person interviews required</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Requires Transportation</label>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="requires_transportation">
+                                    <span>Transportation required</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Follows SCDC Calendar</label>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="follows_scdc_calendar">
+                                    <span>Follows SCDC calendar</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Perks & Benefits</h2>
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label>Perks</label>
+                                <textarea id="perks" placeholder="List benefits and perks (health insurance, remote work, etc.)..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="button" class="btn-cancel" onclick="window.hideForm()">Cancel</button>
+                        <button type="button" class="btn-save" onclick="window.saveJobPosting(event)">Save Job Posting</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </body>
 </html>
