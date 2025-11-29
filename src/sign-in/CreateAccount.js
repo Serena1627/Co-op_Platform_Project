@@ -1,3 +1,4 @@
+import { supabaseClient } from "../../supabaseClient.js";
 let form = document.getElementById('sign-up-form');
 
 form.addEventListener('submit', async (e) => {
@@ -9,18 +10,23 @@ form.addEventListener('submit', async (e) => {
     let accountType = document.querySelector('input[name="accountType"]:checked').value;
 
     try {
-        let response = await fetch('http://localhost:3000/sign-in', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({firstName, lastName, emailAddress, password, accountType})});
-    
-        let data = await response.json();
+        let { data, error } = await supabase.auth.signUp({
+            email: emailAddress,
+            password: password,
+            options: {
+                data: { firstName, lastName, accountType }
+            }
+        });
+        if (error) {
+            alert("Signup failed: " + error.message);
+            return;
+        } 
 
-        if (response.ok) {
         form.reset();
-        }
-    } catch (error){
-        alert("Error connecting to server: " + error.message);
+        alert("Account created");
+    } catch (error) {
+        alert("Error");
     }
+    
 
 });
