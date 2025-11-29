@@ -1,6 +1,8 @@
 import { supabaseClient } from "../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    await supabaseClient.auth.signOut();
+    
     const { data: { session } } = await supabaseClient.auth.getSession();
     
     if (session) {
