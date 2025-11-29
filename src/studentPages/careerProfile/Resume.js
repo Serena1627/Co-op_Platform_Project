@@ -12,21 +12,13 @@ let cancelUploadButton = document.getElementById("cancel-upload-btn");
 let closeButton = document.querySelector(".close-btn");
 let selectedFile = null;
 
-
-let test_email = "na929@drexel.edu";
-let test_password = "1234567890";
-
 let user = null;
 
 async function loginUser() {
-    let { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: test_email,
-        password: test_password
-    });
+    let { data: { session } } = await supabaseClient.auth.getSession();
 
-    if (error) {
-        console.error("Login failed:", error);
-        alert("Login failed. Check console.");
+    iif (!session) {
+        window.location.href="../SignIn.html";
         return;
     }
 
@@ -34,8 +26,6 @@ async function loginUser() {
 
     loadResumes();
 }
-
-
 
 uploadLocalButton.addEventListener("click", () => {
     resumeInput.click();
