@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     accountType
                 },
                 // Add email redirect for confirmation
-                emailRedirectTo: `${window.location.origin}/src/sign-in/confirm.html`
+                emailRedirectTo: `${window.location.origin}./confirm.html`
             }
         });
 

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="module" src="../supabaseClient.js"></script>
+        <script type="module" src="EmployerProfileForm.js"></script>
+        <title>Employer Profile</title>
+        <link rel="stylesheet" href="../styles/ProfileForm.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Employer Profile Form</h1>
+            
+            <div id="message" class="message" style="display: none;"></div>
+
+            <form id="employer-form">
+                <label for="company_name">Company Name</label>
+                <input type="text" id="company_name" required>
+
+                <label for="associates">How many people do you expect to communicate on behalf of your company?</label>
+                <input type="number" id="associates" min="1" max="10" step="1" required>
+
+                <label for="company_description">Company Description</label>
+                <textarea id="company_description" rows="4" required></textarea>
+
+                <label for="company_type">Company Type</label>
+                <select id="company_type" required>
+                    <option value="" disabled selected>Select company type</option>
+                    <option value="Tech">Tech</option>
+                    <option value="MEP">MEP</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Energy">Energy</option>
+                    <option value="BioMed">BioMed</option>
+                    <option value="Consulting">Consulting</option>
+                    <option value="Art Consulting">Art Consulting</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label class="non-profit">
+                    <input type="checkbox" name="non_profit" id="non_profit">
+                    <span>Non-Profit?</span>
+                </label>
+
+                <button type="submit" id="submit-btn">Submit</button>
+            </form>
+        </div>
+    </body>
+</html>

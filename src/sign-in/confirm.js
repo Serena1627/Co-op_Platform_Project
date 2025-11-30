@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (accountType === "student") {
             await handleStudentRedirect(user);
         } else if (accountType === "employer") {
-            window.location.assign("../employerPages/JobPosts.html");
+            await handleEmployerRedirect(user);
         }
     } else {
         // No session - might need manual confirmation
@@ -44,7 +44,7 @@ async function handleStudentRedirect(user) {
         .maybeSingle();
 
     if (error) {
-        console.error("Error checking profile:", error);
+        console.error("Error checking student profile:", error);
         return;
     }
 
@@ -54,5 +54,26 @@ async function handleStudentRedirect(user) {
     } else {
         // Profile exists → redirect to homepage
         window.location.assign("../studentPages/StudentHomepage.html");
+    }
+}
+
+async function handleEmployerRedirect(user){
+    const { data, error } = await supabaseClient
+        .from("companies")
+        .select("*")
+        .overlaps("associates", [user.id])
+        .maybeSingle();
+    
+    if (error){
+        console.error("Error checking employer profile:", error);
+        return;
+    }
+
+    if (!data) {
+        // No profile → redirect to profile form
+        window.location.assign("../employerPages/EmployerProfileForm.html");
+    } else {
+        // Profile exists → redirect to homepage
+        window.location.assign("../employerPages/JobPosts.html");
     }
 }
