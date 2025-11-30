@@ -23,6 +23,8 @@ document.getElementById("student-form").addEventListener("submit", async functio
         college_year: document.getElementById("college_year").value,
         gpa: parseFloat(document.getElementById("gpa").value),
         coop_cycle: document.getElementById("coop_cycle").value,
+        coop_advisor: document.getElementById("coop-advisor").value,
+        coop_advisor_email: document.getElementById("advisor-email").value,
     };
 
     const { data, error } = await supabaseClient

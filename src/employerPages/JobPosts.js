@@ -3,6 +3,11 @@ import { supabaseClient } from "../supabaseClient.js";
 let currentEditingId = null;
 let table = null;
 
+function getCompanyIdFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('company_id');
+}
+
 function showForm(jobId = null) {
     document.getElementById('tableView').classList.add('hidden');
     document.getElementById('formView').classList.add('active');
@@ -62,6 +67,13 @@ async function loadJobData(jobId) {
 async function saveJobPosting(event) {
     event.preventDefault();
 
+    const companyId = getCompanyIdFromURL();
+    if (!companyId) {
+        alert('No company ID found. Please complete your company profile first.');
+        window.location.href = "EmployerProfileForm.html";
+        return;
+    }
+
     const formData = {
         job_title: document.getElementById('job_title').value,
         location: document.getElementById('location').value,
@@ -88,25 +100,25 @@ async function saveJobPosting(event) {
             await updateJobPosting(currentEditingId, formData);
             alert('Job posting updated!');
         } else {
-            await insertJobPosting(formData);
+            await insertJobPosting(formData, companyId);
             alert('Job posting created!');
         }
         hideForm();
-        loadTable();
+        loadTable(companyId);
     } catch (error) {
         console.error('Error saving job posting:', error);
         alert('Error saving job posting. Check console for details.');
     }
 }
 
-async function insertJobPosting(formData) {
+async function insertJobPosting(formData, companyId) {
 
     const { data, error } = await supabaseClient
         .from("job_listings")
         .insert([
             {
                 ...formData,
-                company_id: "665a6a1a-262f-4e19-adf5-ad7c8fc7ed6a"
+                company_id: companyId
             }
         ]);
     
@@ -140,14 +152,24 @@ async function deleteJobPosting(jobId) {
         if (error) throw error;
         
         alert('Job posting deleted!');
-        loadTable();
+        const companyId = getCompanyIdFromURL();
+        loadTable(companyId);
     } catch (error) {
         console.error('Error deleting job posting:', error);
         alert('Error deleting job posting. Check console for details.');
     }
 }
 
-async function loadTable() {
+async function loadTable(companyId = null) {
+    const targetCompanyId = companyId || getCompanyIdFromURL();
+
+    if (!targetCompanyId) {
+        console.error('No company ID found');
+        alert('No company associated. Please complete your company profile.');
+        window.location.href = "EmployerProfileForm.html";
+        return;
+    }
+
     const { data, error } = await supabaseClient
         .from("job_listings")
         .select(`
@@ -160,7 +182,7 @@ async function loadTable() {
                 rating
             )
         `)
-        .eq("company_id", "665a6a1a-262f-4e19-adf5-ad7c8fc7ed6a");
+        .eq("company_id", targetCompanyId);
     
     if (error) {
         console.error("Error loading jobs:", error);
@@ -226,5 +248,13 @@ window.hideForm = hideForm;
 window.saveJobPosting = saveJobPosting;
 
 document.addEventListener("DOMContentLoaded", async () => {
-    loadTable();
+    const companyId = getCompanyIdFromURL();  
+
+    if (!companyId) {
+        alert('No company associated. Please complete your company profile.');
+        window.location.href = "EmployerProfileForm.html";
+        return;
+    }
+
+    loadTable(companyId);
 });

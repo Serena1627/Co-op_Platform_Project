@@ -32,7 +32,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const table = new Tabulator("#student-jobs", {
         data: data,
         layout:"fitColumns",
+        height: "auto",
         columns: [
+            { title:"Company Name", field:"company_name" },
+            { title:"Job Title", field:"job_title" },
+            { title:"Company Rating", field: "company_rating" },
+            { title:"Company Location", field:"location" },
+            { title:"Pay(/hr)", field:"hourly_pay" },
             {
                 title: "Available Jobs",
                 headerHozAlign: "center",
@@ -138,7 +144,6 @@ function showNotification(message) {
 }
 
 function addCustomFilterControls(table) {
-    // Define filter configuration for each column using flattened field names
     const filterConfig = {
         "company_name": {
             label: "Company Name",

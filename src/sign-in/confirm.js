@@ -1,7 +1,6 @@
 import { supabaseClient } from "../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Get the token from URL (Supabase will handle this automatically)
     const { data, error } = await supabaseClient.auth.getSession();
     
     if (error) {
@@ -12,7 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (data.session) {
-        // User is confirmed and has a session
         const user = data.session.user;
         const accountType = user.user_metadata?.accountType;
 
@@ -21,22 +19,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Account type not found. Please contact support.");
             return;
         }
-        
-        // Use the account type from user metadata (stored during signup)
         if (accountType === "student") {
             await handleStudentRedirect(user);
         } else if (accountType === "employer") {
-            window.location.assign("../employerPages/JobPosts.html");
+            await handleEmployerRedirect(user);
         }
     } else {
-        // No session - might need manual confirmation
         alert("Email confirmed! Please sign in.");
         window.location.assign("./login.html");
     }
 });
 
 async function handleStudentRedirect(user) {
-    // Check if student profile exists
     const { data, error } = await supabaseClient
         .from("student_profile")
         .select("*")
@@ -44,15 +38,32 @@ async function handleStudentRedirect(user) {
         .maybeSingle();
 
     if (error) {
-        console.error("Error checking profile:", error);
+        console.error("Error checking student profile:", error);
         return;
     }
 
     if (!data) {
-        // No profile → redirect to profile form
         window.location.assign("../studentPages/StudentProfileForm.html");
     } else {
-        // Profile exists → redirect to homepage
         window.location.assign("../studentPages/StudentHomepage.html");
+    }
+}
+
+async function handleEmployerRedirect(user){
+    const { data, error } = await supabaseClient
+        .from("companies")
+        .select("*")
+        .overlaps("associates", [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
+        .maybeSingle();
+    
+    if (error){
+        console.error("Error checking employer profile:", error);
+        return;
+    }
+
+    if (!data) {
+        window.location.assign(`../employerPages/EmployerProfileForm.html`);
+    } else {
+        window.location.assign(`../employerPages/JobPosts.html?company_id=${data.id}`);
     }
 }

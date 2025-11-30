@@ -6,7 +6,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 25%, #5b21b6 50%, #3730a3 75%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 25%, #5b21b6 50%, #6d28d9 75%, #7c3aed 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -25,7 +25,22 @@ body {
     z-index: 0;
 }
 
-.container {
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+    }
+    25% {
+        transform: translateY(-30px) translateX(20px);
+    }
+    50% {
+        transform: translateY(-60px) translateX(-20px);
+    }
+    75% {
+        transform: translateY(-30px) translateX(20px);
+    }
+}
+
+.signin-container {
     width: 100%;
     max-width: 480px;
     padding: 20px;
@@ -34,7 +49,7 @@ body {
     margin: auto;
 }
 
-.create-card {
+.signin-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-radius: 32px;
@@ -54,7 +69,6 @@ body {
         transform: translateY(0);
     }
 }
-
 .header-section {
     text-align: center;
     margin-bottom: 40px;
@@ -63,13 +77,13 @@ body {
 .logo-circle {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 20px;
-    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
     animation: pulse-glow 3s infinite;
     font-size: 32px;
     color: white;
@@ -77,17 +91,17 @@ body {
 
 @keyframes pulse-glow {
     0%, 100% {
-        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
     }
     50% {
-        box-shadow: 0 10px 40px rgba(37, 99, 235, 0.6);
+        box-shadow: 0 10px 40px rgba(124, 58, 237, 0.6);
     }
 }
 
-.header {
+.main-title {
     font-size: 32px;
     font-weight: 900;
-    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -121,7 +135,6 @@ label {
     font-size: 12px;
 }
 
-input[type="text"],
 input[type="email"],
 input[type="password"] {
     width: 100%;
@@ -134,78 +147,56 @@ input[type="password"] {
     font-weight: 500;
 }
 
-input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus {
     outline: none;
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
     transform: translateY(-2px);
 }
 
 input::placeholder {
     color: #9ca3af;
 }
-
-.account-type {
-    margin-bottom: 24px;
-}
-
-.account-type p {
-    font-size: 14px;
-    font-weight: 700;
-    color: #374151;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 12px;
-}
-
-.radio-options {
+.form-options {
     display: flex;
-    gap: 16px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-size: 14px;
 }
 
-.radio-label {
-    flex: 1;
+.remember-me {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
+    color: #6b7280;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
 }
 
-.radio-label:hover {
-    border-color: #7c3aed;
-    background: #faf5ff;
-}
-
-.radio-label input[type="radio"] {
-    width: 20px;
-    height: 20px;
+.remember-me input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
     cursor: pointer;
-    accent-color: #7c3aed;
+    accent-color: #3b82f6;
 }
 
-.radio-label input[type="radio"]:checked + span {
+.forgot-password {
+    color: #3b82f6;
+    text-decoration: none;
     font-weight: 700;
-    color: #7c3aed;
+    transition: all 0.3s ease;
 }
 
-.radio-label span {
-    color: #374151;
-    font-weight: 600;
-    font-size: 14px;
+.forgot-password:hover {
+    color: #2563eb;
+    text-decoration: underline;
 }
-
-.the-button {
+.signin-button {
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, #7c3aed, #6d28d9, #5b21b6);
+    background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed);
     background-size: 200% 200%;
     color: white;
     border: none;
@@ -213,7 +204,7 @@ input::placeholder {
     font-size: 16px;
     font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
     transition: all 0.4s ease;
     display: flex;
     align-items: center;
@@ -225,7 +216,7 @@ input::placeholder {
     overflow: hidden;
 }
 
-.the-button::before {
+.signin-button::before {
     content: '';
     position: absolute;
     top: 0;
@@ -236,27 +227,27 @@ input::placeholder {
     transition: left 0.5s ease;
 }
 
-.the-button:hover::before {
+.signin-button:hover::before {
     left: 100%;
 }
 
-.the-button:hover {
+.signin-button:hover {
     background-position: 100% 0;
     transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(124, 58, 237, 0.5);
+    box-shadow: 0 15px 40px rgba(37, 99, 235, 0.5);
 }
 
-.the-button:active {
+.signin-button:active {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
-.the-button i {
+.signin-button i {
     transition: transform 0.3s ease;
     font-size: 16px;
 }
 
-.the-button:hover i {
+.signin-button:hover i {
     transform: translateX(5px);
 }
 
@@ -294,18 +285,18 @@ input::placeholder {
     letter-spacing: 1px;
 }
 
-.sign-inlink {
+.signup-link {
     text-align: center;
     padding-top: 20px;
 }
 
-.sign-inlink p {
+.signup-link p {
     color: #6b7280;
     font-size: 15px;
     font-weight: 500;
 }
 
-.sign-inlink a {
+.signup-link a {
     color: #7c3aed;
     text-decoration: none;
     font-weight: 800;
@@ -316,12 +307,12 @@ input::placeholder {
     background-clip: text;
 }
 
-.sign-inlink a:hover {
+.signup-link a:hover {
     text-decoration: underline;
 }
 
 @media (max-width: 600px) {
-    .create-card {
+    .signin-card {
         padding: 32px 24px;
     }
 
@@ -332,10 +323,6 @@ input::placeholder {
     .logo-circle {
         width: 70px;
         height: 70px;
-    }
-
-    .radio-options {
-        flex-direction: column;
     }
 }
 

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="../components/coop-information.js"></script>
+    <script type="module" src="StudentHomepage.js"></script>
     <title>Student Homepage</title>
     <link rel="stylesheet" href="../styles/StudentHomepage.css">
     <link rel="stylesheet" href="../components/navbar.css">
@@ -19,7 +21,7 @@
     <div id="intro-section">
         <img id="dragon" src="../components/drexel-dragon.png" alt="Drexel Dragon">
         <div id="intro-text">
-            <h1 id="intro">Welcome to the Drexel Co-op Portal</h1>
+            <h1 id="intro">Welcome to the Drexel Co-op Portal, </h1>
             <p>The Drexel Co-op Portal is your gateway to finding and applying for professional work experiences
             that complement your academic studies. Through this system, students can explor available co-op positions upload and upate their resumes, and
             apply for jobs during their assigned cycle (Fall/Winter or Spring/Summer). The portal helps you manage every step of the process, from searching for opportunities
@@ -30,9 +32,9 @@
         <img id="dragon" src="../components/drexel-dragon.png" alt="Drexel Dragon">
         <div class="co-op-status-text">
             <h2>Co-op Status</h2>
-            <p>Co-op Cycle: Fall/Winter</p>
+            <p>Co-op Cycle: <span id="coop-cycle"></span></p>
             <p>Round: A</p>
-            <p>Co-op Advisor: Jane Doe</p>
+            <p>Co-op Advisor: <span id="coop-advisor"></span></p>
         </div>
     </div>
     <div id="alerts">
@@ -40,7 +42,7 @@
         <div class="alerts-text">
             <h2>Alerts</h2>
             <ul>
-                <li>Application Deadline: Submit your Fall/Winter Job Requests by Nov 10</li>
+                <li></li>
                 <li>New Listing: The Super Cool Company has posted 3 new co-op positions for your major.</li>
                 <li>Event: Co-op Orientation Session on Nov 12 (Schedule w/ Advisor)</li>
                 <li>Event: Resume Review Nov 8 at DAC!</li>
