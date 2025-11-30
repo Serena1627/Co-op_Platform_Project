@@ -2,7 +2,7 @@ import { supabaseClient } from "../../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Get current user ID (replace with actual auth)
-    const CURRENT_USER_ID = "YOUR_STUDENT_UUID"; // Replace with actual logged-in user ID
+    const CURRENT_USER_ID = "6ca88f98-01e0-4153-a0af-988a1d270d30"; 
 
     await loadApplications(CURRENT_USER_ID);
 });

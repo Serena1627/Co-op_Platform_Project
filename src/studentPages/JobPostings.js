@@ -3,7 +3,7 @@ import { supabaseClient } from "../supabaseClient.js";
 document.addEventListener("DOMContentLoaded", async () => {
     // Get current user ID (you'll need to implement authentication)
     // For now, using a placeholder - replace with actual auth
-    const CURRENT_USER_ID = "YOUR_STUDENT_UUID"; // Replace with actual logged-in user ID
+    const CURRENT_USER_ID = "6ca88f98-01e0-4153-a0af-988a1d270d30"; // Replace with actual logged-in user ID
 
     const { data, error } = await supabaseClient
         .from("job_listings")
