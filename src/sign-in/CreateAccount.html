@@ -5,36 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="module" src="../supabaseClient.js"></script>
     <script type="module" src="CreateAccount.js"></script>
+    <script type="module" src="../supabaseClient.js"></script>
+    <script type="module" src="CreateAccount.js"></script>
     <link rel="stylesheet" href="../styles/CreateAccount.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script type="module" src="CreateAccount.js"></script>
     <title>Create An Account</title>
 </head>
 <body>
     <div class="container">
-        <h2 class="header">Create An Account</h2>
+        <div class="create-card">
+            <div class="header-section">
+                <div class="logo-circle">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h1 class="header">Create An Account</h1>
+                <p class="subtitle">Join the Drexel Co-op Portal</p>
+            </div>
         <form id="sign-up-form">
-            <label for="firstName">First Name</label>
-            <input type="text" id="firstName" name="firstName" required>
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
 
-            <label for="lastName">Last Name</label>
-            <input type="text" id="lastName" name="lastName" required>
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+            
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
 
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="password">New Password</label>
-            <input type="password" id="password" name="password"
-                pattern=".{8,}" 
-                title="Password must be at least 8 characters long"
-                required>
+                <label for="password">New Password</label>
+                <input type="password" id="password" name="password" pattern=".{8,}" title="Password must be at least 8 characters long" required>
 
             <div class="account-type"> 
                 <p>Select Account Type:</p>
-                <label><input type="radio" name="accountType" value="student" required>Student</label>
-                <label><input type="radio" name="accountType" value="employer">Employer</label>
+                </div class="radio-options">
+                    <label class="radio-label"><input type="radio" name="accountType" value="student" required><span>Student</span></label>
+                    <label class="radio-label"><input type="radio" name="accountType" value="employer"><span>Employer</span></label>
             </div>
 
-            <button class="the-button" type="submit">Sign Up</button>
+            <button class="the-button" type="submit">
+                <span>Create Account</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <div class="divider">
+                <span>or</span>
+            </div>
+
+            <div class="sign-inlink">
+                <p>Already have an account? <a href="SignIn.html">Sign In</a></p>
+            </div>
         </form>
+        </div>    
     </div>
 </body>
 </html>

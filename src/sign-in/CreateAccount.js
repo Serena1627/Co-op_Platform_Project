@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastName,
                     accountType
                 },
-                // Add email redirect for confirmation
                 emailRedirectTo: `${window.location.origin}./confirm.html`
             }
         });
@@ -31,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Only go to check email page
         window.location.assign("./CheckEmail.html");
     });
 });

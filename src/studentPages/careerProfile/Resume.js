@@ -16,13 +16,15 @@ let user = null;
 
 async function loginUser() {
     let { data: { session } } = await supabaseClient.auth.getSession();
+    let { data: { session } } = await supabaseClient.auth.getSession();
 
     iif (!session) {
         window.location.href="../SignIn.html";
         return;
     }
 
-    user = data.user;
+
+    user = session.user;
 
     loadResumes();
 }
@@ -193,8 +195,6 @@ async function loadResumes() {
             
             li.remove();
         });
-
-        //li.innerHTML = `<a href="${url}" target="_blank">${resume.file_path.split("/").pop()}</a>`;
         li.appendChild(leftContainer);
         li.appendChild(deleteButton);
         resumeList.appendChild(li);

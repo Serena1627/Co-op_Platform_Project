@@ -1,11 +1,11 @@
 import { supabaseClient } from "../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Check if user is already logged in
+    await supabaseClient.auth.signOut();
+    
     const { data: { session } } = await supabaseClient.auth.getSession();
     
     if (session) {
-        // Already logged in - redirect immediately
         await handlePostLoginRedirect(session.user);
         return;
     }
@@ -27,8 +27,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Login failed: " + error.message);
             return;
         }
-
-        // Successfully logged in - redirect based on account type
         await handlePostLoginRedirect(data.user);
     });
 });
@@ -52,7 +50,6 @@ async function handlePostLoginRedirect(user) {
 }
 
 async function handleStudentRedirect(user) {
-    // Check if student profile exists (same logic as your signup flow)
     const { data, error } = await supabaseClient
         .from("student_profile")
         .select("*")
@@ -65,18 +62,15 @@ async function handleStudentRedirect(user) {
     }
 
     if (!data) {
-        // No profile → redirect to profile form (first time login)
         window.location.assign("../studentPages/StudentProfileForm.html");
     } else {
-        // Profile exists → redirect to student homepage
         window.location.assign("../studentPages/StudentHomepage.html");
     }
 }
 
 async function handleEmployerRedirect(user) {
-    // Check if employer profile exists (you'll need to implement this)
     const { data, error } = await supabaseClient
-        .from("employer_profile")  // You'll need to create this table
+        .from("employer_profile")
         .select("*")
         .eq("employer_id", user.id)
         .maybeSingle();
@@ -87,10 +81,8 @@ async function handleEmployerRedirect(user) {
     }
 
     if (!data) {
-        // No employer profile → redirect to employer profile form
         window.location.assign("../employerPages/EmployerProfileForm.html");
     } else {
-        // Profile exists → redirect to employer dashboard
         window.location.assign("../employerPages/JobPosts.html");
     }
 }

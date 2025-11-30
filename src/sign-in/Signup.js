@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function handleLoggedIn(user) {
-    // Wait a moment for metadata to be fully loaded
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const accountType = user.user_metadata?.accountType;
