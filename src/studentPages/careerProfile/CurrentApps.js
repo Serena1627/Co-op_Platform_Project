@@ -1,15 +1,19 @@
 import { supabaseClient } from "../../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Get current user ID (replace with actual auth)
-    const CURRENT_USER_ID = "6ca88f98-01e0-4153-a0af-988a1d270d30"; 
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    if (!user) {
+        alert("You are not logged in.");
+        window.location.assign("../sign-in/SignIn.html");
+        return;
+    }
 
-    await loadApplications(CURRENT_USER_ID);
+    await loadApplications(user.id);
 });
 
 async function loadApplications(studentId) {
     try {
-        // Fetch all applications for the current student with job details
         const { data, error } = await supabaseClient
             .from("current_applications")
             .select(`
@@ -35,20 +39,16 @@ async function loadApplications(studentId) {
             return;
         }
 
-        // Update the header count
         const headerElement = document.querySelector(".applications-header h2");
         headerElement.textContent = `My Applications (${data.length})`;
 
-        // Get the content container (after the header)
         const contentContainer = document.querySelector(".content");
         
-        // Remove existing dummy card
         const existingCard = contentContainer.querySelector(".application-card");
         if (existingCard) {
             existingCard.remove();
         }
 
-        // If no applications, show empty state
         if (data.length === 0) {
             const emptyState = document.createElement("div");
             emptyState.className = "empty-state";
@@ -60,7 +60,6 @@ async function loadApplications(studentId) {
             return;
         }
 
-        // Create a card for each application
         data.forEach(application => {
             const card = createApplicationCard(application);
             contentContainer.appendChild(card);
@@ -79,7 +78,6 @@ function createApplicationCard(application) {
         day: '2-digit' 
     });
 
-    // Map status to display text and class
     const statusMap = {
         'pending': { text: 'Application Pending', class: 'status-pending' },
         'submitted': { text: 'Submitted', class: 'status-submitted' },
@@ -129,7 +127,6 @@ function createApplicationCard(application) {
         </div>
     `;
 
-    // Add event listener for withdraw button
     const withdrawBtn = card.querySelector(".withdraw-btn");
     withdrawBtn.addEventListener("click", () => withdrawApplication(application.id, card));
 
@@ -153,12 +150,10 @@ async function withdrawApplication(applicationId, cardElement) {
             return;
         }
 
-        // Update the status badge in the card
         const statusBadge = cardElement.querySelector(".status-badge");
         statusBadge.textContent = "Withdrawn";
         statusBadge.className = "status-badge status-withdrawn";
 
-        // Disable the withdraw button
         const withdrawBtn = cardElement.querySelector(".withdraw-btn");
         withdrawBtn.disabled = true;
         withdrawBtn.textContent = "Application Withdrawn";
