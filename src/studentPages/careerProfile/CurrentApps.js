@@ -1,1 +1,1 @@
-import { supabaseClient } from "../supabaseClient.js";
+import { supabaseClient } from "../../supabaseClient.js"

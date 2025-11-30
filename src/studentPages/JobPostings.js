@@ -26,31 +26,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const table = new Tabulator("#student-jobs", {
         data: data,
         layout:"fitColumns",
+        height: "auto",
         columns: [
+            { title:"Company Name", field:"company_name" },
+            { title:"Job Title", field:"job_title" },
+            { title:"Company Rating", field: "company_rating" },
+            { title:"Company Location", field:"location" },
+            { title:"Pay(/hr)", field:"hourly_pay" },
             {
-                title: "Available Jobs",
-                headerHozAlign: "center",
-                columns: [
-                    { title:"Company Name", field:"company_name" },
-                    { title:"Job Title", field:"job_title" },
-                    { title:"Company Rating", field: "company_rating" },
-                    { title:"Company Location", field:"location" },
-                    { title:"Pay(/hr)", field:"hourly_pay" },
-                    {
-                        title: "Actions",
-                        field: "actions",
-                        formatter: function(cell, formatterParams, onRender){
-                            let button = document.createElement("button");
-                            button.innerHTML = "+";
-                            button.addEventListener("click", function(){
-                                let cellElement = cell.getElement();
-                                cellElement.innerText= "✔️";
-                            });
-                            return button;
-                        }
-                    }
-                ],
-            },
+                title: "Actions",
+                field: "actions",
+                formatter: function(cell, formatterParams, onRender){
+                    let button = document.createElement("button");
+                    button.innerHTML = "+";
+                    button.addEventListener("click", function(){
+                        let cellElement = cell.getElement();
+                        cellElement.innerText= "✔️";
+                    });
+                    return button;
+                }
+            }
         ],
         pagination: "local",
         paginationSize: 10,
@@ -60,11 +55,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function addCustomFilterControls(table) {
-    // Define filter configuration for each column using flattened field names
     const filterConfig = {
         "company_name": {
             label: "Company Name",
-            type: "dropdown", // Dropdown list
+            type: "dropdown",
             operators: [
                 { value: "=", label: "equals" },
                 { value: "!=", label: "not equals" }
@@ -74,7 +68,7 @@ function addCustomFilterControls(table) {
             label: "Job Title", 
             type: "string",
             operators: [
-                { value: "like", label: "contains" } // Only "like" operator
+                { value: "like", label: "contains" }
             ]
         },
         "company_rating": {
@@ -91,7 +85,7 @@ function addCustomFilterControls(table) {
         },
         "location": {
             label: "Location",
-            type: "dropdown", // Dropdown list
+            type: "dropdown",
             operators: [
                 { value: "=", label: "equals" },
                 { value: "!=", label: "not equals" }
@@ -111,16 +105,13 @@ function addCustomFilterControls(table) {
         }
     };
 
-    // No need to create container - it already exists in HTML
     const filterContainer = document.getElementById('custom-filter-container');
     const filterRows = document.getElementById('filter-rows');
 
     let activeFilters = [];
 
-    // Add first filter row by default
     addFilterRow();
 
-    // Event listeners - elements already exist in HTML
     document.getElementById('add-filter-btn').addEventListener('click', addFilterRow);
     document.getElementById('clear-filters-btn').addEventListener('click', clearAllFilters);
 
@@ -145,7 +136,6 @@ function addCustomFilterControls(table) {
 
         filterRows.appendChild(filterRow);
 
-        // Add event listeners for the new row
         const fieldSelect = filterRow.querySelector('.filter-field');
         const operatorSelect = filterRow.querySelector('.filter-operator');
         const valueInput = filterRow.querySelector('.filter-value');
@@ -165,7 +155,6 @@ function addCustomFilterControls(table) {
             applyFilters();
         });
 
-        // For input fields, use debounced input
         let inputTimeout;
         valueInput.addEventListener('input', function() {
             clearTimeout(inputTimeout);
@@ -211,7 +200,6 @@ function addCustomFilterControls(table) {
         const config = filterConfig[field];
         
         if (config.type === 'dropdown') {
-            // Get unique values from table data for dropdown fields
             const uniqueValues = [...new Set(table.getData().map(row => row[field]))].filter(val => val != null && val !== '').sort();
             
             const select = document.createElement('select');
@@ -233,7 +221,6 @@ function addCustomFilterControls(table) {
             
             valueContainer.appendChild(select);
         } else if (config.type === 'number') {
-            // For number fields, use number input
             const input = document.createElement('input');
             input.type = 'number';
             input.className = 'filter-value';
@@ -253,7 +240,6 @@ function addCustomFilterControls(table) {
             
             valueContainer.appendChild(input);
         } else {
-            // For string fields (Job Title), use text input
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'filter-value';
@@ -293,14 +279,11 @@ function addCustomFilterControls(table) {
                 };
                 
                 if (field === 'job_title') {
-                    // For job title, use "like" operator which does contains search by default
                     filterConfig.type = 'like';
                 } else if (field === 'company_rating' || field === 'hourly_pay') {
-                    // For number fields
                     filterConfig.type = operator;
                     filterConfig.value = parseFloat(value);
                 } else {
-                    // For other fields
                     filterConfig.type = operator;
                 }
                 
@@ -319,6 +302,6 @@ function addCustomFilterControls(table) {
         filterRows.innerHTML = '';
         activeFilters = [];
         table.clearFilter();
-        addFilterRow(); // Add one empty filter row back
+        addFilterRow();
     }
 }

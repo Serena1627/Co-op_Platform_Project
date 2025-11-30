@@ -1,0 +1,273 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.body-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+#upload-section {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.upload-btn {
+    padding: 12px 24px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+    background-color: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.upload-btn:active {
+    transform: translateY(0);
+}
+
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 600;
+}
+
+.resume-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.resume-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 16px 20px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.resume-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: #d0d0d0;
+}
+
+.resume-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.resume-link {
+    font-weight: 500;
+    color: #667eea;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.resume-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.resume-item-meta {
+    font-size: 12px;
+    color: #999;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.default-btn,
+.delete-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.default-btn {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.default-btn:hover {
+    background-color: #e8e8e8;
+    border-color: #999;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #c82333;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.delete-button {
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #c82333;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Preview Overlay */
+.preview-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.preview-overlay.active {
+    display: flex;
+}
+
+.preview-content {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+.preview-content h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #333;
+}
+
+#resume-preview-frame {
+    margin-bottom: 15px;
+    border: 1px solid #ddd !important;
+}
+
+#resume-title {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s ease;
+}
+
+#resume-title:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.preview-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.preview-buttons .upload-btn,
+.preview-buttons .delete-btn {
+    flex: 1;
+    padding: 12px;
+}
+
+@media (max-width: 768px) {
+    .body-container {
+        margin: 30px auto;
+    }
+
+    #upload-section {
+        flex-direction: column;
+    }
+
+    .upload-btn {
+        width: 100%;
+    }
+
+    .resume-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .default-btn,
+    .delete-btn {
+        width: 100%;
+    }
+
+    .preview-content {
+        padding: 20px;
+    }
+}
