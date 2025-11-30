@@ -15,6 +15,15 @@ async function loadProfile() {
         alert("Failed to load employer profile.");
         return;
     }
+
+    const mainPageLink = document.getElementById('main-page-link');
+    if (mainPageLink) {
+        mainPageLink.href = `JobPosts.html?company_id=${data.id}`;
+    }
+
+    const createButton = document.getElementById('create-button');
+    createButton.style.visibility = 'hidden';
+
     document.getElementById("first_name").textContent = user.user_metadata.firstName;
     document.getElementById("last_name").textContent = user.user_metadata.lastName;
     document.getElementById("email_address").textContent = user.email;

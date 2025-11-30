@@ -1,12 +1,12 @@
 #top-bar {
-    background-color: #ffffff;
-    padding: 10px 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    position: sticky;
+    background: white;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
     top: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: center;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
 .nav-menu {
@@ -14,42 +14,45 @@
     margin: 0;
     padding: 0;
     display: flex;
-    gap: 30px;
+    justify-content: center;
     align-items: center;
+    gap: 20px;
 }
 
 .nav-menu li {
-    position: relative;
+    margin: 0;
 }
 
-.nav-menu a, .nav-menu .dropbtn {
-    text-decoration: none;
-    color: black;
-    font-size: 18px;
-    padding: 8px 12px;
-    display: inline-block;
-    cursor: pointer;
-}
-
-.nav-menu a:hover, .nav-menu .dropbtn:hover {
-    background-color: #f0f0f0;
-    border-radius: 5px;
-}
-
-.add-btn {
-    padding: 10px 16px;
-    background: #007bff;
+.nav-menu button {
+    background: #07294D;
     color: white;
     border: none;
+    padding: 10px 20px;
     border-radius: 6px;
+    font-size: 16px;
     cursor: pointer;
-    font-weight: 600;
-    display: inline-flex;
+    transition: all 0.3s ease;
+    display: flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.3s ease;
 }
 
-.add-btn:hover {
-    background: #0056b3;
+.nav-menu button:hover {
+    background: #0a3d6b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(7, 41, 77, 0.3);
+}
+
+.nav-menu button i {
+    font-size: 16px;
+}
+
+.nav-menu button a {
+    color: white;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.nav-menu button a:hover {
+    text-decoration: none;
 }
