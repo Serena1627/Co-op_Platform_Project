@@ -70,9 +70,9 @@ async function handleStudentRedirect(user) {
 
 async function handleEmployerRedirect(user) {
     const { data, error } = await supabaseClient
-        .from("employer_profile")
+        .from("companies")
         .select("*")
-        .eq("employer_id", user.id)
+        .overlaps("associates", [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
         .maybeSingle();
 
     if (error) {
@@ -81,8 +81,8 @@ async function handleEmployerRedirect(user) {
     }
 
     if (!data) {
-        window.location.assign("../employerPages/EmployerProfileForm.html");
+        window.location.assign(`../employerPages/EmployerProfileForm.html`);
     } else {
-        window.location.assign("../employerPages/JobPosts.html");
+        window.location.assign(`../employerPages/JobPosts.html?company_id=${data.id}`);
     }
 }
