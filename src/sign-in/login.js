@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    const form = document.getElementById("login-form");
+    const form = document.getElementById("login-in-form");
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
