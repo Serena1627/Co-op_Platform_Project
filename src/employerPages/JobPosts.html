@@ -9,15 +9,23 @@
         <script type="module" src="JobPosts.js"></script>
         <title>Job Posts</title>
         <link rel="stylesheet" href="../styles/JobPosts.css">
+        <link rel="stylesheet" href="../styles/EmployerNavBar.css">
         <link rel="stylesheet" href="../styles/AdminIndex.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
     <body>
         <div class="table-view" id="tableView">
-            </br>
-            <button class="add-btn message-btn btn"><i class="fa fa-envelope-o"></i> Messages</button>
+            <div id="navbar-container"></div>
+            <script>
+                fetch('../../src/components/EmployerNavbar.html')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('navbar-container').innerHTML = data;
+                    })
+                    .catch(err => console.error('Navbar load error:', err));
+            </script>
+
             </br></br></br>
-            <button class="add-btn btn" onclick="window.showForm()"><i class="fa fa-plus"></i> Create job post</button>
 
             <div id="student-jobs" class="postings-table"></div>
         </div>
