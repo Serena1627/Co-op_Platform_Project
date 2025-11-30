@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.81.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  },
+  "name": "co-op-portal-project-cs-375",
+  "version": "1.0.0",
+  "description": "Group Members:\r Nardos Amare - na929@drexel.edu\r Tsion Bekele - tsb97@drexel.edu\r Serena Osuagwu - so546@drexel.edu\r Naomi Enogieru - ne347@drexel.edu\r Group Name: NTSN",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.cci.drexel.edu/na929/co-op-portal-project-cs-375.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
