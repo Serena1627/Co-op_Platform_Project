@@ -25,10 +25,7 @@ async function loadInternships() {
             const div = document.createElement("div");
             div.className = "job-card";
             
-            // Format posted date
             const postedDate = job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently posted';
-            
-            // Get company logo or use placeholder
             const companyLogo = job.organization_logo || null;
             
             div.innerHTML = `
@@ -73,7 +70,6 @@ async function loadInternships() {
             container.appendChild(div);
         });
 
-        // Add metadata display at the bottom
         if (data.metadata) {
             const metadataDiv = document.createElement("div");
             metadataDiv.className = "metadata-info";

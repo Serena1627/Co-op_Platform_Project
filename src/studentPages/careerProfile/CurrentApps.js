@@ -73,6 +73,180 @@ async function loadApplications(studentId) {
     }
 }
 
+function createResumeSelectionPopup(applicationId, jobTitle, companyName) {
+    const popup = document.createElement("div");
+    popup.className = "resume-selection-popup";
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Complete Application for ${jobTitle}</h3>
+                <p>${companyName}</p>
+                <span class="close-popup">&times;</span>
+            </div>
+            <div class="popup-body">
+                <h4>Select a Resume</h4>
+                <div id="resume-options" class="resume-options">
+                    <!-- Resumes will be loaded here -->
+                    <p>Loading resumes...</p>
+                </div>
+                <div id="resume-preview-container" class="resume-preview-container" style="display: none;">
+                    <h4>Resume Preview</h4>
+                    <iframe id="selected-resume-preview" style="width:100%; height:300px; border:1px solid #ccc;"></iframe>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button id="confirm-application-btn" class="btn btn-primary" disabled>
+                    Submit Application
+                </button>
+                <button id="cancel-application-btn" class="btn btn-outline">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    loadUserResumes(applicationId);
+    setupPopupListeners(popup, applicationId);
+    
+    return popup;
+}
+
+async function loadUserResumes(applicationId) {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (!user) {
+            alert("You are not logged in.");
+            window.location.assign("../sign-in/login.html");
+            return;
+        }
+        
+        const { data: resumes, error } = await supabaseClient
+            .from("resume_files")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("is_default", { ascending: false });
+        
+        if (error) throw error;
+        
+        const resumeOptions = document.getElementById("resume-options");
+        resumeOptions.innerHTML = "";
+        
+        if (resumes.length === 0) {
+            resumeOptions.innerHTML = '<p>No resumes found. Please upload a resume first.</p>';
+            return;
+        }
+        
+        resumes.forEach((resume, index) => {
+            const resumeOption = document.createElement("div");
+            resumeOption.className = "resume-option";
+            resumeOption.dataset.resumeId = resume.id;
+            resumeOption.dataset.filePath = resume.file_path;
+            resumeOption.innerHTML = `
+                <input type="radio" name="selected-resume" id="resume-${resume.id}" 
+                       ${index === 0 ? 'checked' : ''}>
+                <label for="resume-${resume.id}">
+                    <strong>${resume.name}</strong>
+                    ${resume.is_default ? '<span class="default-badge">Default</span>' : ''}
+                </label>
+            `;
+            
+            resumeOption.addEventListener("click", async () => {
+                resumeOption.querySelector('input').checked = true;
+                await previewSelectedResume(resume.file_path);
+                document.getElementById("confirm-application-btn").disabled = false;
+            });
+            
+            resumeOptions.appendChild(resumeOption);
+        });
+        
+        if (resumes.length > 0) {
+            await previewSelectedResume(resumes[0].file_path);
+            document.getElementById("confirm-application-btn").disabled = false;
+        }
+        
+    } catch (error) {
+        console.error("Error loading resumes:", error);
+        document.getElementById("resume-options").innerHTML = 
+            '<p>Error loading resumes. Please try again.</p>';
+    }
+}
+
+async function previewSelectedResume(filePath) {
+    try {
+        const { data: signedUrlData, error } = await supabaseClient
+            .storage
+            .from("resumes")
+            .createSignedUrl(filePath, 60);
+        
+        if (error) throw error;
+        
+        const previewContainer = document.getElementById("resume-preview-container");
+        const previewFrame = document.getElementById("selected-resume-preview");
+        
+        previewFrame.src = signedUrlData.signedUrl;
+        previewContainer.style.display = "block";
+        
+    } catch (error) {
+        console.error("Error loading resume preview:", error);
+    }
+}
+
+function setupPopupListeners(popup, applicationId) {
+    const closeBtn = popup.querySelector(".close-popup");
+    const cancelBtn = popup.querySelector("#cancel-application-btn");
+    const confirmBtn = popup.querySelector("#confirm-application-btn");
+    
+    const closePopup = () => popup.remove();
+    
+    closeBtn.addEventListener("click", closePopup);
+    cancelBtn.addEventListener("click", closePopup);
+    
+    popup.addEventListener("click", (e) => {
+        if (e.target === popup) closePopup();
+    });
+    
+    confirmBtn.addEventListener("click", async () => {
+        const selectedResume = document.querySelector('input[name="selected-resume"]:checked');
+        if (!selectedResume) {
+            alert("Please select a resume");
+            return;
+        }
+        
+        const resumeId = selectedResume.parentElement.dataset.resumeId;
+        await submitApplicationWithResume(applicationId, resumeId);
+        closePopup();
+    });
+}
+
+async function submitApplicationWithResume(applicationId, resumeId) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("current_applications")
+            .update({ 
+                status: 'submitted',
+                resume_submitted: resumeId,
+                applied_date: new Date().toISOString()
+            })
+            .eq("id", applicationId);
+        
+        if (error){
+            throw new Error(`Couldn't Update Applicate: ${error.message}`);
+        }
+        
+        
+        showNotification("Application submitted successfully!");
+        window.location.reload();
+        
+        
+    } catch (error) {
+        console.error("Error submitting application:", error);
+        alert("Failed to submit application. Please try again.");
+    }
+}
+
 async function calculateProgressTimeline(studentId) {
     try {
         const { data: student, error: cycleError } = await supabaseClient
@@ -85,7 +259,11 @@ async function calculateProgressTimeline(studentId) {
             throw new Error("Could not fetch student coop cycle.");
         }
 
+       
+
         const coopCycle = student.coop_cycle.toLowerCase();
+
+        document.querySelector(".progress-title").textContent = `Current Co-op Cycle: ${student.coop_cycle}`;
 
         const { data: coopData, error: calendarError } = await supabaseClient
             .from("coop_calendar")
@@ -193,6 +371,30 @@ function createApplicationCard(application) {
     const card = document.createElement("div");
     card.className = "application-card";
     card.dataset.status = application.status;
+    card.dataset.applicationId = application.id;
+
+    let actionButtons = '';
+    if (application.status === 'pending') {
+        actionButtons = `
+            <button class="btn btn-primary complete-application-btn" data-app-id="${application.id}">
+                Complete Application
+            </button>
+            <button class="btn btn-outline withdraw-btn" data-app-id="${application.id}">
+                Withdraw Application
+            </button>`;
+    } else if (application.status === 'withdrawn'){
+        actionButtons = `
+            <button class="btn btn-outline withdraw-btn" data-app-id="${application.id}" disabled>
+                Withdraw Application
+            </button>`;
+    } else {
+        actionButtons = `
+            <button class="btn btn-outline withdraw-btn" data-app-id="${application.id}">
+                Withdraw Application
+            </button>`;
+    }
+
+
     card.innerHTML = `
         <div class="card-header">
             <div class="company-info">
@@ -222,11 +424,20 @@ function createApplicationCard(application) {
         </div>
         
         <div class="card-actions">
-            <button class="btn btn-outline withdraw-btn" data-app-id="${application.id}">
-                Withdraw Application
-            </button>
+            ${actionButtons}
         </div>
     `;
+
+    if (application.status === 'pending') {
+        const completeBtn = card.querySelector(".complete-application-btn");
+        completeBtn.addEventListener("click", () => {
+            createResumeSelectionPopup(
+                application.id, 
+                job.job_title, 
+                companyName
+            );
+        });
+    }
 
     const withdrawBtn = card.querySelector(".withdraw-btn");
     withdrawBtn.addEventListener("click", () => withdrawApplication(application.id, card));

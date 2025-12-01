@@ -38,6 +38,7 @@ resumeInput.addEventListener("change", (event) => {
 
     if (!user) {
         alert("Must be logged in to upload a resume.")
+        window.location.assign("../sign-in/login.html");
     }
 
     previewOverlay.style.display = "block";
@@ -108,7 +109,11 @@ window.addEventListener("click", (e) => {
 })
 
 async function loadResumes() {
-    if (!user) return;
+    if (!user) {
+        alert("You are not logged in.");
+        window.location.assign("../sign-in/login.html");
+        return;
+    }
 
     let { data, error } = await supabaseClient
         .from("resume_files")

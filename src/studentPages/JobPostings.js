@@ -44,32 +44,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             { title:"Company Location", field:"location" },
             { title:"Pay(/hr)", field:"hourly_pay" },
             {
-                title: "Available Jobs",
-                headerHozAlign: "center",
-                columns: [
-                    { title:"Company Name", field:"company_name" },
-                    { title:"Job Title", field:"job_title" },
-                    { title:"Company Rating", field: "company_rating" },
-                    { title:"Company Location", field:"location" },
-                    { title:"Pay(/hr)", field:"hourly_pay" },
-                    {
-                        title: "Actions",
-                        field: "actions",
-                        formatter: function(cell, formatterParams, onRender){
-                            let button = document.createElement("button");
-                            button.innerHTML = "+";
-                            button.classList.add("apply-btn");
-                            
-                            button.addEventListener("click", async function(){
-                                const rowData = cell.getRow().getData();
-                                await applyToJob(rowData, cell, user.id);
-                            });
-                            return button;
-                        }
-                    }
-                ],
-            },
+                title: "Actions",
+                field: "actions",
+                formatter: function(cell, formatterParams, onRender){
+                    let button = document.createElement("button");
+                    button.innerHTML = "+";
+                    button.classList.add("apply-btn");
+                    
+                    button.addEventListener("click", async function(){
+                        const rowData = cell.getRow().getData();
+                        await applyToJob(rowData, cell, user.id);
+                    });
+                    return button;
+                }
+            }
         ],
+
         pagination: "local",
         paginationSize: 10,
     });
