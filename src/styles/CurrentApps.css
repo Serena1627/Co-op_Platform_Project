@@ -217,6 +217,46 @@
     cursor: not-allowed;
 }
 
+/* Selected Applications Summary */
+.selected-apps-summary {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.selected-apps-summary h4 {
+    margin: 0 0 10px 0;
+    color: #495057;
+    font-size: 14px;
+}
+
+.apps-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.summary-app-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: white;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.summary-app-item i {
+    color: #667eea;
+    font-size: 14px;
+}
+
+.summary-app-item strong {
+    color: #212529;
+}
+
 /* Complete Application Button */
 .complete-application-btn {
     background: #28a745;
@@ -294,75 +334,104 @@
     margin-bottom: 15px;
 }
 
-/* Mass Apply Section */
-.mass-apply-section {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
+/* Select Apply Section */
+.select-apply-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
     padding: 20px;
     margin-bottom: 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
 }
 
-.mass-apply-header {
+.select-apply-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.select-apply-header label {
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.select-apply-info {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    margin-left: 8px;
+}
+
+.select-apply-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: white;
+}
+
+.select-apply-actions {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.mass-apply-info {
-    color: #666;
-    font-size: 14px;
-}
-
-.mass-apply-checkbox {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-}
-
-.mass-apply-btn {
-    background: #28a745;
+.selected-count {
     color: white;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+}
+
+.select-apply-btn {
+    background: white;
+    color: #667eea;
     border: none;
     padding: 10px 20px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.mass-apply-btn:hover:not(:disabled) {
-    background: #218838;
+.select-apply-btn:hover:not(:disabled) {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.mass-apply-btn:disabled {
-    background: #6c757d;
+.select-apply-btn:disabled {
+    background: rgba(255, 255, 255, 0.5);
+    color: rgba(102, 126, 234, 0.5);
     cursor: not-allowed;
-    opacity: 0.6;
+    box-shadow: none;
 }
 
-.mass-apply-btn i {
+.select-apply-btn i {
     font-size: 14px;
 }
 
+/* Selected Application Card Styling */
 .application-card.selected {
-    border: 2px solid #007bff;
-    background: #f0f8ff;
+    border: 2px solid #667eea;
+    background: linear-gradient(to right, rgba(102, 126, 234, 0.05), white);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
-.select-checkbox {
+.card-select-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
     margin-right: 15px;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    accent-color: #667eea;
 }
 
 .company-info {
@@ -472,7 +541,7 @@
     background-color: #5568d3;
 }
 
-/* Additional status badge colors (add to your existing status badges) */
+/* Additional status badge colors */
 .status-pending {
     background: #fff3e0;
     color: #f57c00;

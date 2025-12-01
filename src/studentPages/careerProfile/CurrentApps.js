@@ -1,5 +1,7 @@
 import { supabaseClient } from "../../supabaseClient.js";
 
+let selectedApplications = new Set();
+
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
     
@@ -11,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     await calculateProgressTimeline(user.id);
     setupAppFilters();
-
     await loadApplications(user.id);
 });
 
@@ -47,10 +48,8 @@ async function loadApplications(studentId) {
 
         const contentContainer = document.querySelector(".content");
         
-        const existingCard = contentContainer.querySelector(".application-card");
-        if (existingCard) {
-            existingCard.remove();
-        }
+        const existingCards = contentContainer.querySelectorAll(".application-card");
+        existingCards.forEach(card => card.remove());
 
         if (data.length === 0) {
             const emptyState = document.createElement("div");
@@ -60,7 +59,18 @@ async function loadApplications(studentId) {
                 <a href="../JobPostings.html">Browse Available Jobs</a>
             `;
             contentContainer.appendChild(emptyState);
+            hideSelectApplySection();
             return;
+        }
+
+        // Count pending applications
+        const pendingCount = data.filter(app => app.status === 'pending').length;
+        
+        // Show/hide select apply section based on pending applications
+        if (pendingCount > 0) {
+            showSelectApplySection(pendingCount);
+        } else {
+            hideSelectApplySection();
         }
 
         data.forEach(application => {
@@ -70,6 +80,295 @@ async function loadApplications(studentId) {
 
     } catch (err) {
         console.error("Unexpected error loading applications:", err);
+    }
+}
+
+function showSelectApplySection(pendingCount) {
+    const selectApplyContainer = document.getElementById("mass-apply");
+    selectApplyContainer.innerHTML = `
+        <div class="select-apply-section">
+            <div class="select-apply-header">
+                <input type="checkbox" id="select-all-checkbox" class="select-apply-checkbox">
+                <label for="select-all-checkbox">
+                    <strong>Select All Pending Applications</strong>
+                </label>
+                <span class="select-apply-info">(${pendingCount} pending)</span>
+            </div>
+            <div class="select-apply-actions">
+                <span id="selected-count" class="selected-count">0 selected</span>
+                <button id="apply-selected-btn" class="select-apply-btn" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                    Apply to Selected
+                </button>
+            </div>
+        </div>
+    `;
+
+    setupSelectApplyListeners();
+}
+
+function hideSelectApplySection() {
+    const selectApplyContainer = document.getElementById("mass-apply");
+    selectApplyContainer.innerHTML = '';
+    selectedApplications.clear();
+}
+
+function setupSelectApplyListeners() {
+    const selectAllCheckbox = document.getElementById("select-all-checkbox");
+    const applySelectedBtn = document.getElementById("apply-selected-btn");
+
+    selectAllCheckbox.addEventListener("change", (e) => {
+        const pendingCards = document.querySelectorAll('.application-card[data-status="pending"]');
+        
+        if (e.target.checked) {
+            pendingCards.forEach(card => {
+                const appId = card.dataset.applicationId;
+                selectedApplications.add(appId);
+                card.classList.add("selected");
+                const checkbox = card.querySelector(".card-select-checkbox");
+                if (checkbox) checkbox.checked = true;
+            });
+        } else {
+            pendingCards.forEach(card => {
+                const appId = card.dataset.applicationId;
+                selectedApplications.delete(appId);
+                card.classList.remove("selected");
+                const checkbox = card.querySelector(".card-select-checkbox");
+                if (checkbox) checkbox.checked = false;
+            });
+        }
+        
+        updateSelectApplyUI();
+    });
+
+    applySelectedBtn.addEventListener("click", () => {
+        if (selectedApplications.size === 0) return;
+        
+        const selectedApps = Array.from(selectedApplications);
+        createMultiResumeSelectionPopup(selectedApps);
+    });
+}
+
+function updateSelectApplyUI() {
+    const selectedCount = document.getElementById("selected-count");
+    const applyBtn = document.getElementById("apply-selected-btn");
+    const selectAllCheckbox = document.getElementById("select-all-checkbox");
+    
+    const count = selectedApplications.size;
+    selectedCount.textContent = `${count} selected`;
+    applyBtn.disabled = count === 0;
+
+    // Update select all checkbox state
+    const pendingCards = document.querySelectorAll('.application-card[data-status="pending"]');
+    const allSelected = pendingCards.length > 0 && 
+                       Array.from(pendingCards).every(card => 
+                           selectedApplications.has(card.dataset.applicationId)
+                       );
+    selectAllCheckbox.checked = allSelected;
+}
+
+function createMultiResumeSelectionPopup(applicationIds) {
+    const popup = document.createElement("div");
+    popup.className = "resume-selection-popup";
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Apply to ${applicationIds.length} Selected Position${applicationIds.length > 1 ? 's' : ''}</h3>
+                <p>Choose a resume to submit with all selected applications</p>
+                <span class="close-popup">&times;</span>
+            </div>
+            <div class="popup-body">
+                <div class="selected-apps-summary">
+                    <h4>Selected Applications:</h4>
+                    <div id="apps-summary-list" class="apps-summary-list">
+                        <!-- Will be populated -->
+                    </div>
+                </div>
+                <h4>Select a Resume</h4>
+                <div id="resume-options" class="resume-options">
+                    <p>Loading resumes...</p>
+                </div>
+                <div id="resume-preview-container" class="resume-preview-container" style="display: none;">
+                    <h4>Resume Preview</h4>
+                    <iframe id="selected-resume-preview" style="width:100%; height:300px; border:1px solid #ccc;"></iframe>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button id="confirm-application-btn" class="btn btn-primary" disabled>
+                    Submit ${applicationIds.length} Application${applicationIds.length > 1 ? 's' : ''}
+                </button>
+                <button id="cancel-application-btn" class="btn btn-outline">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    populateAppsSummary(applicationIds);
+    loadUserResumesForMulti(applicationIds);
+    setupMultiPopupListeners(popup, applicationIds);
+    
+    return popup;
+}
+
+async function populateAppsSummary(applicationIds) {
+    const summaryList = document.getElementById("apps-summary-list");
+    summaryList.innerHTML = '<p>Loading...</p>';
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("current_applications")
+            .select(`
+                id,
+                job_listings!inner (
+                    job_title,
+                    company:company_id (
+                        company_name
+                    )
+                )
+            `)
+            .in('id', applicationIds);
+
+        if (error) throw error;
+
+        summaryList.innerHTML = data.map(app => {
+            const job = app.job_listings;
+            const company = job.company?.company_name || 'Unknown Company';
+            return `
+                <div class="summary-app-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span><strong>${job.job_title}</strong> at ${company}</span>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error("Error loading applications summary:", error);
+        summaryList.innerHTML = '<p>Error loading applications</p>';
+    }
+}
+
+async function loadUserResumesForMulti(applicationIds) {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (!user) {
+            alert("You are not logged in.");
+            window.location.assign("../sign-in/login.html");
+            return;
+        }
+        
+        const { data: resumes, error } = await supabaseClient
+            .from("resume_files")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("is_default", { ascending: false });
+        
+        if (error) throw error;
+        
+        const resumeOptions = document.getElementById("resume-options");
+        resumeOptions.innerHTML = "";
+        
+        if (resumes.length === 0) {
+            resumeOptions.innerHTML = '<p>No resumes found. Please upload a resume first.</p>';
+            return;
+        }
+        
+        resumes.forEach((resume, index) => {
+            const resumeOption = document.createElement("div");
+            resumeOption.className = "resume-option";
+            resumeOption.dataset.resumeId = resume.id;
+            resumeOption.dataset.filePath = resume.file_path;
+            resumeOption.innerHTML = `
+                <input type="radio" name="selected-resume" id="resume-${resume.id}" 
+                       ${index === 0 ? 'checked' : ''}>
+                <label for="resume-${resume.id}">
+                    <strong>${resume.name}</strong>
+                    ${resume.is_default ? '<span class="default-badge">Default</span>' : ''}
+                </label>
+            `;
+            
+            resumeOption.addEventListener("click", async () => {
+                resumeOption.querySelector('input').checked = true;
+                await previewSelectedResume(resume.file_path);
+                document.getElementById("confirm-application-btn").disabled = false;
+            });
+            
+            resumeOptions.appendChild(resumeOption);
+        });
+        
+        if (resumes.length > 0) {
+            await previewSelectedResume(resumes[0].file_path);
+            document.getElementById("confirm-application-btn").disabled = false;
+        }
+        
+    } catch (error) {
+        console.error("Error loading resumes:", error);
+        document.getElementById("resume-options").innerHTML = 
+            '<p>Error loading resumes. Please try again.</p>';
+    }
+}
+
+function setupMultiPopupListeners(popup, applicationIds) {
+    const closeBtn = popup.querySelector(".close-popup");
+    const cancelBtn = popup.querySelector("#cancel-application-btn");
+    const confirmBtn = popup.querySelector("#confirm-application-btn");
+    
+    const closePopup = () => popup.remove();
+    
+    closeBtn.addEventListener("click", closePopup);
+    cancelBtn.addEventListener("click", closePopup);
+    
+    popup.addEventListener("click", (e) => {
+        if (e.target === popup) closePopup();
+    });
+    
+    confirmBtn.addEventListener("click", async () => {
+        const selectedResume = document.querySelector('input[name="selected-resume"]:checked');
+        if (!selectedResume) {
+            alert("Please select a resume");
+            return;
+        }
+        
+        const resumeId = selectedResume.parentElement.dataset.resumeId;
+        await submitMultipleApplications(applicationIds, resumeId);
+        closePopup();
+    });
+}
+
+async function submitMultipleApplications(applicationIds, resumeId) {
+    try {
+        // Show loading state
+        const confirmBtn = document.getElementById("confirm-application-btn");
+        const originalText = confirmBtn.textContent;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        // Update all applications
+        const { data, error } = await supabaseClient
+            .from("current_applications")
+            .update({ 
+                status: 'submitted',
+                resume_submitted: resumeId,
+                applied_date: new Date().toISOString()
+            })
+            .in('id', applicationIds);
+        
+        if (error) {
+            throw new Error(`Couldn't update applications: ${error.message}`);
+        }
+        
+        showNotification(`Successfully submitted ${applicationIds.length} application${applicationIds.length > 1 ? 's' : ''}!`);
+        
+        // Clear selections and reload
+        selectedApplications.clear();
+        setTimeout(() => window.location.reload(), 1000);
+        
+    } catch (error) {
+        console.error("Error submitting applications:", error);
+        alert(`Failed to submit applications: ${error.message}`);
     }
 }
 
@@ -86,7 +385,6 @@ function createResumeSelectionPopup(applicationId, jobTitle, companyName) {
             <div class="popup-body">
                 <h4>Select a Resume</h4>
                 <div id="resume-options" class="resume-options">
-                    <!-- Resumes will be loaded here -->
                     <p>Loading resumes...</p>
                 </div>
                 <div id="resume-preview-container" class="resume-preview-container" style="display: none;">
@@ -233,17 +531,16 @@ async function submitApplicationWithResume(applicationId, resumeId) {
             .eq("id", applicationId);
         
         if (error){
-            throw new Error(`Couldn't Update Applicate: ${error.message}`);
+            throw new Error(`Couldn't Update Application: ${error.message}`);
         }
         
-        
         showNotification("Application submitted successfully!");
-        window.location.reload();
         
+        setTimeout(() => window.location.reload(), 1000);
         
     } catch (error) {
         console.error("Error submitting application:", error);
-        alert("Failed to submit application. Please try again.");
+        alert(`Failed to submit application: ${error.message}`);
     }
 }
 
@@ -259,8 +556,6 @@ async function calculateProgressTimeline(studentId) {
             throw new Error("Could not fetch student coop cycle.");
         }
 
-       
-
         const coopCycle = student.coop_cycle.toLowerCase();
 
         document.querySelector(".progress-title").textContent = `Current Co-op Cycle: ${student.coop_cycle}`;
@@ -270,12 +565,10 @@ async function calculateProgressTimeline(studentId) {
             .select("*")
             .ilike("coop_cycle", coopCycle);
         
-
         if (calendarError || !coopData || coopData.length === 0) {
             throw new Error("No coop calendar entries found for this cycle.");
         }
 
-        
         const rounds = coopData.map(round => ({
             ...round,
             job_postings_available: new Date(round.job_postings_available),
@@ -325,7 +618,6 @@ async function calculateProgressTimeline(studentId) {
     }
 }
 
-
 function setProgressBar(stageNumber) {
     let progressBar = document.querySelector(".timeline-progress");
     progressBar.style.width = `${20 * stageNumber}%`;
@@ -346,7 +638,6 @@ function setProgressBar(stageNumber) {
         }
     });
 }
-
 
 function createApplicationCard(application) {
     const job = application.job_listings;
@@ -373,6 +664,11 @@ function createApplicationCard(application) {
     card.dataset.status = application.status;
     card.dataset.applicationId = application.id;
 
+    // Add checkbox for pending applications
+    const selectCheckbox = application.status === 'pending' 
+        ? `<input type="checkbox" class="card-select-checkbox" data-app-id="${application.id}">` 
+        : '';
+
     let actionButtons = '';
     if (application.status === 'pending') {
         actionButtons = `
@@ -394,9 +690,9 @@ function createApplicationCard(application) {
             </button>`;
     }
 
-
     card.innerHTML = `
         <div class="card-header">
+            ${selectCheckbox}
             <div class="company-info">
                 <h3>${job.job_title}</h3>
                 <p>${companyName} • ${job.location} • $${job.hourly_pay}/hr</p>
@@ -428,7 +724,21 @@ function createApplicationCard(application) {
         </div>
     `;
 
+    // Setup checkbox listener for pending applications
     if (application.status === 'pending') {
+        const checkbox = card.querySelector(".card-select-checkbox");
+        checkbox.addEventListener("change", (e) => {
+            const appId = e.target.dataset.appId;
+            if (e.target.checked) {
+                selectedApplications.add(appId);
+                card.classList.add("selected");
+            } else {
+                selectedApplications.delete(appId);
+                card.classList.remove("selected");
+            }
+            updateSelectApplyUI();
+        });
+
         const completeBtn = card.querySelector(".complete-application-btn");
         completeBtn.addEventListener("click", () => {
             createResumeSelectionPopup(
@@ -470,6 +780,11 @@ async function withdrawApplication(applicationId, cardElement) {
         withdrawBtn.disabled = true;
         withdrawBtn.textContent = "Application Withdrawn";
 
+        // Remove from selected if it was selected
+        selectedApplications.delete(applicationId);
+        cardElement.classList.remove("selected");
+        updateSelectApplyUI();
+
         showNotification("Application withdrawn successfully");
 
     } catch (err) {
@@ -491,7 +806,6 @@ function setupAppFilters() {
         });
     });
 }
-
 
 function filterApplications(filter) {
     const cards = document.querySelectorAll(".application-card");
@@ -519,7 +833,6 @@ function filterApplications(filter) {
         }
     });
 }
-
 
 function showNotification(message) {
     const notification = document.createElement("div");
