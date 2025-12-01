@@ -27,6 +27,44 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 2000);
         return;
     }
+    let userEmail = user.email;
+    let possibleCompName = userEmail.substring(userEmail.indexOf("@") + 1, userEmail.lastIndexOf("."));
+    const { data:possibleCompData, error: possibleError } = await supabaseClient
+        .from('companies')
+        .select('id, company_name')
+        .ilike('company_name', possibleCompName)
+        .maybeSingle();
+    
+    if (possibleError) {
+        console.error("Error checking email-matching company:", possibleError);
+        return;
+    }
+
+    if (possibleCompData) {
+        const confirmed = confirm(
+            `We found a company named "${possibleCompData.company_name}".\n` +
+            `Are you associated with this company?`
+        );
+
+        if (confirmed) {
+            const { error } = supabaseClient.rpc('append_to_array', {
+                record_id: possibleCompData.id,
+                column_name: 'associates',
+                new_element: `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
+            });
+        
+            if (error) {
+                throw new Error(`Couldn't update applications: ${error.message}`);
+            }
+
+            showMessage(`You are now associated with ${possibleCompData.company_name}. Redirecting...`, 'info');
+            setTimeout(() => {
+                window.location.assign(`../employerPages/JobPosts.html?company_id=${possibleCompData.id}`);
+            }, 2000);
+            return;
+        }
+    }
+
 });
 
 document.getElementById("employer-form").addEventListener("submit", async function (e) {
@@ -70,7 +108,7 @@ document.getElementById("employer-form").addEventListener("submit", async functi
 
         if (existingCompany) {
             const { updateError } = await supabaseClient.rpc('append_to_array', {
-                record_id: data.id,
+                record_id: existingCompany.id,
                 column_name: 'associates',
                 new_element: `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
             });
