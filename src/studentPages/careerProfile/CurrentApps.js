@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (!user) {
         alert("You are not logged in.");
-        window.location.assign("/co-op-portal-project-cs-375/src/sign-in/login.html");
+        window.location.assign("/src/sign-in/login.html");
         return;
     }
     
@@ -63,10 +63,8 @@ async function loadApplications(studentId) {
             return;
         }
 
-        // Count pending applications
         const pendingCount = data.filter(app => app.status === 'pending').length;
-        
-        // Show/hide select apply section based on pending applications
+
         if (pendingCount > 0) {
             showSelectApplySection(pendingCount);
         } else {
@@ -158,7 +156,6 @@ function updateSelectApplyUI() {
     selectedCount.textContent = `${count} selected`;
     applyBtn.disabled = count === 0;
 
-    // Update select all checkbox state
     const pendingCards = document.querySelectorAll('.application-card[data-status="pending"]');
     const allSelected = pendingCards.length > 0 && 
                        Array.from(pendingCards).every(card => 
@@ -340,13 +337,11 @@ function setupMultiPopupListeners(popup, applicationIds) {
 
 async function submitMultipleApplications(applicationIds, resumeId) {
     try {
-        // Show loading state
         const confirmBtn = document.getElementById("confirm-application-btn");
         const originalText = confirmBtn.textContent;
         confirmBtn.disabled = true;
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
-        // Update all applications
         const { data, error } = await supabaseClient
             .from("current_applications")
             .update({ 
@@ -362,7 +357,6 @@ async function submitMultipleApplications(applicationIds, resumeId) {
         
         showNotification(`Successfully submitted ${applicationIds.length} application${applicationIds.length > 1 ? 's' : ''}!`);
         
-        // Clear selections and reload
         selectedApplications.clear();
         setTimeout(() => window.location.reload(), 1000);
         
@@ -664,7 +658,6 @@ function createApplicationCard(application) {
     card.dataset.status = application.status;
     card.dataset.applicationId = application.id;
 
-    // Add checkbox for pending applications
     const selectCheckbox = application.status === 'pending' 
         ? `<input type="checkbox" class="card-select-checkbox" data-app-id="${application.id}">` 
         : '';
@@ -724,7 +717,6 @@ function createApplicationCard(application) {
         </div>
     `;
 
-    // Setup checkbox listener for pending applications
     if (application.status === 'pending') {
         const checkbox = card.querySelector(".card-select-checkbox");
         checkbox.addEventListener("change", (e) => {
@@ -780,7 +772,6 @@ async function withdrawApplication(applicationId, cardElement) {
         withdrawBtn.disabled = true;
         withdrawBtn.textContent = "Application Withdrawn";
 
-        // Remove from selected if it was selected
         selectedApplications.delete(applicationId);
         cardElement.classList.remove("selected");
         updateSelectApplyUI();
