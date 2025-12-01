@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (!user) {
         alert("You are not logged in.");
-        window.location.assign("../sign-in/SignIn.html");
+        window.location.assign("../sign-in/login.html");
         return;
     }
 
@@ -43,7 +43,7 @@ document.getElementById("employer-form").addEventListener("submit", async functi
 
         if (!user) {
             alert("You are not logged in.");
-            window.location.assign("../sign-in/SignIn.html");
+            window.location.assign("../sign-in/login.html");
             return;
         }
 

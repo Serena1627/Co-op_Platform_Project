@@ -24,7 +24,7 @@
 }
 
 .nav-menu button {
-    background: #07294D;
+    background: #0b3e75;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -38,7 +38,7 @@
 }
 
 .nav-menu button:hover {
-    background: #0a3d6b;
+    background: #0d5491;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(7, 41, 77, 0.3);
 }

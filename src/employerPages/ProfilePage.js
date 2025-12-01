@@ -2,6 +2,11 @@ import { supabaseClient } from "../supabaseClient.js";
 
 
 const { data: { user } } = await supabaseClient.auth.getUser();
+    
+if (!user) {
+    alert("You are not logged in.");
+    window.location.assign("../sign-in/login.html");
+}
 
 async function loadProfile() {
     const { data, error } = await supabaseClient
@@ -21,8 +26,7 @@ async function loadProfile() {
         mainPageLink.href = `JobPosts.html?company_id=${data.id}`;
     }
 
-    const createButton = document.getElementById('create-button');
-    createButton.style.visibility = 'hidden';
+
 
     document.getElementById("first_name").textContent = user.user_metadata.firstName;
     document.getElementById("last_name").textContent = user.user_metadata.lastName;
