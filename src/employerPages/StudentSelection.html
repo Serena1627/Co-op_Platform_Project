@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="module" src="StudentSelection.js"></script>
+        <title>Student Applications</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+        <link rel="stylesheet" href="../styles/EmployerNavBar.css">
+        <link rel="stylesheet" href="../styles/StudentSelection.css">
+    </head>
+    <body>
+        <div id="navbar-container"></div>
+        <script>
+        fetch('../components/EmployerNavbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(err => console.error('Navbar load error:', err));
+        </script>
+
+        <div class="container">
+            <h1>Student Applications</h1>
+            <p class="subtitle">Review and manage applications from students for your job postings</p>
+
+            <div class="filters">
+                <input type="search" placeholder="Search by name, major, or skills...">
+                <select>
+                    <option>All Job Posts</option>
+                    <option>Software Engineer Intern</option>
+                    <option>Data Analyst Co-op</option>
+                    <option>UX Designer Intern</option>
+                </select>
+                <select>
+                    <option>All Statuses</option>
+                    <option>New</option>
+                    <option>Reviewed</option>
+                </select>
+                <select>
+                    <option>All Years</option>
+                    <option>Freshman</option>
+                    <option>Sophomore</option>
+                    <option>Junior</option>
+                    <option>Senior</option>
+                </select>
+            </div>
+            <div id="no-applications"></div>
+            <div class="application-grid" id="application-grid">
+            </div>
+        </div>
+    </body>
+</html>

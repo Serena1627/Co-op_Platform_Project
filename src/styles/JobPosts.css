@@ -17,7 +17,7 @@ body {
 
 .add-btn {
     padding: 10px 16px;
-    background: #007bff;
+    background: #0b3e75;
     color: white;
     border: none;
     border-radius: 6px;
@@ -30,7 +30,9 @@ body {
 }
 
 .add-btn:hover {
-    background: #0056b3;
+    background: #0d5491;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(7, 41, 77, 0.3);
 }
 
 .edit-btn, .delete-btn {
