@@ -5,9 +5,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (!user) {
         alert("You are not logged in.");
-        window.location.assign("../sign-in/login.html");
+        window.location.assign("/co-op-portal-project-cs-375/src/sign-in/login.html");
         return;
     }
+    
+    await calculateProgressTimeline(user.id);
+    setupAppFilters();
 
     await loadApplications(user.id);
 });
@@ -70,6 +73,103 @@ async function loadApplications(studentId) {
     }
 }
 
+async function calculateProgressTimeline(studentId) {
+    try {
+        const { data: student, error: cycleError } = await supabaseClient
+            .from("student_profile")
+            .select("coop_cycle")
+            .eq("student_id", studentId)
+            .single();
+
+        if (cycleError || !student) {
+            throw new Error("Could not fetch student coop cycle.");
+        }
+
+        const coopCycle = student.coop_cycle.toLowerCase();
+
+        const { data: coopData, error: calendarError } = await supabaseClient
+            .from("coop_calendar")
+            .select("*")
+            .ilike("coop_cycle", coopCycle);
+        
+
+        if (calendarError || !coopData || coopData.length === 0) {
+            throw new Error("No coop calendar entries found for this cycle.");
+        }
+
+        
+        const rounds = coopData.map(round => ({
+            ...round,
+            job_postings_available: new Date(round.job_postings_available),
+            view_interviews_granted: new Date(round.view_interviews_granted),
+            interview_period_end: new Date(round.interview_period_end),
+            rankings_due: new Date(round.rankings_due),
+            results_available: new Date(round.results_available),
+        }));
+
+        const today = new Date();
+        let currentRound = null;
+
+        for (let round of rounds) {
+            if (today >= round.job_postings_available &&
+                today <= round.results_available) {
+                currentRound = round;
+                break;
+            }
+        }
+
+        if (!currentRound) {
+            throw new Error("Current date does not fall within any round range.");
+        }
+
+        let stage = 1;
+
+        if (today >= currentRound.job_postings_available && today < currentRound.view_interviews_granted) {
+            stage = 1;
+        }
+        else if (today >= currentRound.view_interviews_granted && today < currentRound.interview_period_end) {
+            stage = 2;
+        }
+        else if (today >= currentRound.interview_period_end && today < currentRound.rankings_due) {
+            stage = 3;
+        }
+        else if (today >= currentRound.rankings_due && today < currentRound.results_available) {
+            stage = 4;
+        }
+        else if (today >= currentRound.results_available) {
+            stage = 5;
+        }
+
+        setProgressBar(stage);
+
+    } catch (error) {
+        alert(`Error generating Coop Timeline: ${error.message}`);
+    }
+}
+
+
+function setProgressBar(stageNumber) {
+    let progressBar = document.querySelector(".timeline-progress");
+    progressBar.style.width = `${20 * stageNumber}%`;
+
+    const periods = document.querySelectorAll(".timeline-step");
+
+    periods.forEach(period => {
+        const circle = period.querySelector(".timeline-circle");
+        const num = parseInt(circle.textContent, 10);
+
+        if (circle.textContent === "✓") return;
+
+        if (stageNumber > num) {
+            period.classList.add("completed");
+            circle.textContent = "✓";
+        } else if (stageNumber === num) {
+            period.classList.add("active");
+        }
+    });
+}
+
+
 function createApplicationCard(application) {
     const job = application.job_listings;
     const companyName = job.company?.company_name || "Unknown Company";
@@ -92,6 +192,7 @@ function createApplicationCard(application) {
 
     const card = document.createElement("div");
     card.className = "application-card";
+    card.dataset.status = application.status;
     card.innerHTML = `
         <div class="card-header">
             <div class="company-info">
@@ -165,6 +266,49 @@ async function withdrawApplication(applicationId, cardElement) {
         alert("An unexpected error occurred. Please try again.");
     }
 }
+
+function setupAppFilters() {
+    const tabs = document.querySelectorAll("#app-filters .tab");
+
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            tabs.forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+
+            const filter = tab.textContent.trim().toLowerCase();
+            filterApplications(filter);
+        });
+    });
+}
+
+
+function filterApplications(filter) {
+    const cards = document.querySelectorAll(".application-card");
+
+    cards.forEach(card => {
+        const status = card.dataset.status;
+
+        if (filter === "all") {
+            card.style.display = "block";
+        } 
+        else if (filter === "active") {
+            const activeStatuses = ["submitted", "interview", "offer"];
+            card.style.display = activeStatuses.includes(status)
+                ? "block"
+                : "none";
+        }
+        else if (filter === "pending") {
+            card.style.display = status === "pending" ? "block" : "none";
+        }
+        else if (filter === "completed") {
+            const completedStatuses = ["accepted", "rejected", "withdrawn"];
+            card.style.display = completedStatuses.includes(status)
+                ? "block"
+                : "none";
+        }
+    });
+}
+
 
 function showNotification(message) {
     const notification = document.createElement("div");
