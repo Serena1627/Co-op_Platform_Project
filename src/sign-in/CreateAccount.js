@@ -1,0 +1,35 @@
+import { supabaseClient } from "../supabaseClient.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("sign-up-form");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const firstName = document.getElementById("firstName").value;
+        const lastName = document.getElementById("lastName").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const accountType = document.querySelector('input[name="accountType"]:checked').value;
+
+        let { error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    firstName,
+                    lastName,
+                    accountType
+                },
+                emailRedirectTo: `${window.location.origin}./confirm.html`
+            }
+        });
+
+        if (error) {
+            alert("Signup failed: " + error.message);
+            return;
+        }
+
+        window.location.assign("./CheckEmail.html");
+    });
+});

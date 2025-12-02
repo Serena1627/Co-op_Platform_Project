@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script type="module" src="../../supabaseClient.js"></script>
+        <script type="module" src="CurrentApps.js"></script>
+        <title>Co-op Application Tracker</title>
+        <link rel="stylesheet" href="../../styles/JobPostings.css">
+        <link rel="stylesheet" href="../../styles/CurrentApps.css">
+        <link rel="stylesheet" href="../../styles/Navbar.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    </head>
+
+    <body>
+        <div id="navbar-container"></div>
+        <script>
+        fetch('../../components/Navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(err => console.error('Navbar load error:', err));
+        </script>
+
+        <div class="progress-section">
+            <div class="progress-title"></div>
+            <div class="timeline">
+                <div class="timeline-progress" style="width: 20%;"></div>
+                
+                <div class="timeline-step">
+                    <div class="timeline-circle">1</div>
+                    <div class="timeline-label">Application<br>Period</div>
+                </div>
+                
+                <div class="timeline-step ">
+                    <div class="timeline-circle">2</div>
+                    <div class="timeline-label">Interview<br>Period</div>
+                </div>
+                
+                <div class="timeline-step ">
+                    <div class="timeline-circle">3</div>
+                    <div class="timeline-label">Ranking<br>Period</div>
+                </div>
+                
+                <div class="timeline-step">
+                    <div class="timeline-circle">4</div>
+                    <div class="timeline-label">Offer<br>Period</div>
+                </div>
+                
+                <div class="timeline-step">
+                    <div class="timeline-circle">5</div>
+                    <div class="timeline-label">Offer<br>Acceptance</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="applications-header">
+                <h2>My Applications (5)</h2>
+                <div id="app-filters" class="filter-tabs">
+                    <button class="tab active">All</button>
+                    <button class="tab">Active</button>
+                    <button class="tab">Pending</button>
+                    <button class="tab">Completed</button>
+                </div>
+            </div>
+
+            <div id="mass-apply"></div>
+
+            <div class="application-card">
+                <div class="card-header">
+                    <div class="company-info">
+                        <h3>Data Science Co-op</h3>
+                        <p>Microsoft • Seattle, WA • $42/hr</p>
+                    </div>
+                    <span class="status-badge status-interview">Interview Scheduled</span>
+                </div>
+                
+                <div class="card-timeline">
+                    <div class="card-stage">
+                        <div class="stage-icon completed">✓</div>
+                        <span>Added 09/20</span>
+                    </div>
+                    <div class="card-stage">
+                        <div class="stage-icon completed">✓</div>
+                        <span>Submitted 09/22</span>
+                    </div>
+                    <div class="card-stage">
+                        <div class="stage-icon active">📅</div>
+                        <span>Interview 10/25</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary">View Interview Details</button>
+                    <button class="btn btn-outline">Withdraw Application</button>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
