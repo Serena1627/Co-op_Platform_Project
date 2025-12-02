@@ -1,22 +1,14 @@
-<<<<<<< HEAD
-
-const supabase = window.supabase.createClient(
-    "https://xvdbeuqgtyonbbsdkcqu.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2ZGJldXFndHlvbmJic2RrY3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNjUwNjYsImV4cCI6MjA3ODY0MTA2Nn0.ZF-zhsVH2OCyhljoC_G3Rlug5IwZS_OTcdkYwfL1d84"
-);
-
-async function test() {
-    const { data, error } = await supabase.from("job_listings").select("*");
-    console.log(data, error);
-}
-
-test();
-=======
 import { supabaseClient } from "../supabaseClient.js";
+
 document.addEventListener("DOMContentLoaded", async () => {
+    // Get current user ID (you'll need to implement authentication)
+    // For now, using a placeholder - replace with actual auth
+    const CURRENT_USER_ID = "6ca88f98-01e0-4153-a0af-988a1d270d30"; // Replace with actual logged-in user ID
+
     const { data, error } = await supabaseClient
         .from("job_listings")
         .select(`
+            id,
             job_title,
             location,
             hourly_pay,
@@ -48,18 +40,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             { title:"Company Location", field:"location" },
             { title:"Pay(/hr)", field:"hourly_pay" },
             {
-                title: "Actions",
-                field: "actions",
-                formatter: function(cell, formatterParams, onRender){
-                    let button = document.createElement("button");
-                    button.innerHTML = "+";
-                    button.addEventListener("click", function(){
-                        let cellElement = cell.getElement();
-                        cellElement.innerText= "✔️";
-                    });
-                    return button;
-                }
-            }
+                title: "Available Jobs",
+                headerHozAlign: "center",
+                columns: [
+                    { title:"Company Name", field:"company_name" },
+                    { title:"Job Title", field:"job_title" },
+                    { title:"Company Rating", field: "company_rating" },
+                    { title:"Company Location", field:"location" },
+                    { title:"Pay(/hr)", field:"hourly_pay" },
+                    {
+                        title: "Actions",
+                        field: "actions",
+                        formatter: function(cell, formatterParams, onRender){
+                            let button = document.createElement("button");
+                            button.innerHTML = "+";
+                            button.classList.add("apply-btn");
+                            
+                            button.addEventListener("click", async function(){
+                                const rowData = cell.getRow().getData();
+                                await applyToJob(rowData, cell, CURRENT_USER_ID);
+                            });
+                            return button;
+                        }
+                    }
+                ],
+            },
         ],
         pagination: "local",
         paginationSize: 10,
@@ -68,11 +73,81 @@ document.addEventListener("DOMContentLoaded", async () => {
     addCustomFilterControls(table);
 });
 
+async function applyToJob(jobData, cell, studentId) {
+    const button = cell.getElement().querySelector("button");
+    
+    // Disable button to prevent multiple clicks
+    button.disabled = true;
+    button.innerHTML = "...";
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("current_applications")
+            .insert([
+                {
+                    student_id: studentId,
+                    job_id: jobData.id,
+                    status: "pending"
+                }
+            ])
+            .select();
+
+        if (error) {
+            // Check if it's a duplicate application
+            if (error.code === '23505') {
+                alert("You have already applied to this job!");
+            } else {
+                console.error("Error applying to job:", error);
+                alert("Failed to apply. Please try again.");
+            }
+            button.disabled = false;
+            button.innerHTML = "+";
+            return;
+        }
+
+        // Success - change button to checkmark
+        button.innerHTML = "✓";
+        button.classList.add("applied");
+        
+        // Show success message
+        showNotification("Application submitted successfully!");
+
+    } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("An unexpected error occurred. Please try again.");
+        button.disabled = false;
+        button.innerHTML = "+";
+    }
+}
+
+function showNotification(message) {
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
 function addCustomFilterControls(table) {
     const filterConfig = {
         "company_name": {
             label: "Company Name",
-            type: "dropdown", // Dropdown list
+            type: "dropdown",
             operators: [
                 { value: "=", label: "equals" },
                 { value: "!=", label: "not equals" }
@@ -319,4 +394,3 @@ function addCustomFilterControls(table) {
         addFilterRow();
     }
 }
->>>>>>> Serena

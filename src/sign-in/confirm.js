@@ -53,7 +53,7 @@ async function handleEmployerRedirect(user){
     const { data, error } = await supabaseClient
         .from("companies")
         .select("*")
-        .overlaps("associates", [user.id])
+        .overlaps("associates", [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
         .maybeSingle();
     
     if (error){
@@ -62,10 +62,8 @@ async function handleEmployerRedirect(user){
     }
 
     if (!data) {
-        // No profile → redirect to profile form
-        window.location.assign("../employerPages/EmployerProfileForm.html");
+        window.location.assign(`../employerPages/EmployerProfileForm.html`);
     } else {
-        // Profile exists → redirect to homepage
-        window.location.assign("../employerPages/JobPosts.html");
+        window.location.assign(`../employerPages/JobPosts.html?company_id=${data.id}`);
     }
 }

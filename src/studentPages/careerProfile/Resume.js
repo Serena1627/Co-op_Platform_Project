@@ -16,9 +16,8 @@ let user = null;
 
 async function loginUser() {
     let { data: { session } } = await supabaseClient.auth.getSession();
-    let { data: { session } } = await supabaseClient.auth.getSession();
 
-    iif (!session) {
+    if (!session) {
         window.location.href="../SignIn.html";
         return;
     }
