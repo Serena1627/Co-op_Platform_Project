@@ -2,6 +2,9 @@ import { supabaseClient } from "../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get("jobId");
+
     const { data: userData } = await supabaseClient.auth.getUser();
     const user = userData?.user;
 
@@ -15,26 +18,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Error Getting Company Profile:", companyError);
         return;
     }
-
+    const companyName = companyData?.company_name;
+    const companyId = companyData?.id;
     const mainPageLink = document.getElementById('main-page-link');
     if (mainPageLink) {
         mainPageLink.href = `JobPosts.html?company_id=${companyData.id}`;
     }else{
         console.log("here");
     }
+    const title = document.querySelector(".container h1");
+    const jobFilter = document.querySelector(".filters select:first-of-type");
 
-    const { data: applications, error } = await supabaseClient
-        .from("application_submissions")
-        .select("*")
-        .eq("company_id", companyData.id);
-
-    if (error) {
-        console.error("Error Getting Applications:", error);
-        return;
+    let applications;
+    if (jobId) {
+        jobFilter.disabled = true;
+        const { data: jobData } = await supabaseClient
+            .from("job_listings")
+            .select("job_title")
+            .eq("id", jobId)
+            .maybeSingle();
+        
+        const jobTitle = jobData?.job_title || jobId;
+        title.textContent = `Student Applications for ${companyName} - ${jobTitle}`;
+        applications = (await getJobApplications(null, jobId)).data
+    } else {
+        title.textContent = `Student Applications for ${companyName}`;
+        applications = (await getJobApplications(companyId, null)).data
     }
 
     const applicationGrid = document.getElementById("application-grid");
-
     if (!applications || applications.length === 0) {
         document.getElementById("no-applications").innerHTML = `
             <div class="no-applications">
@@ -132,6 +144,25 @@ function createApplicationCard(application, student) {
 
 function viewApplication(applicationId, studentId) {
     window.location.href = `ApplicationDetail.html?applicationId=${applicationId}&studentId=${studentId}`;
+}
+
+async function getJobApplications(companyId = null, jobId = null) {
+    let filterId = companyId;
+    let filterStatement = "company_id";
+    if (jobId) {
+        filterId = jobId;
+        filterStatement = "job_id";
+    }
+    const { data, error } = await supabaseClient
+        .from("application_submissions")
+        .select("*")
+        .eq(filterStatement, filterId);
+
+    if (error) {
+        console.error("Error Getting Applications:", error);
+        return { data: [], error }; 
+    }
+    return { data: data, error: null };
 }
 
 window.viewApplication = viewApplication;
