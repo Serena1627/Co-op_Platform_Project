@@ -1,9 +1,13 @@
 import { supabaseClient } from "../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Get current user ID (you'll need to implement authentication)
-    // For now, using a placeholder - replace with actual auth
-    const CURRENT_USER_ID = "6ca88f98-01e0-4153-a0af-988a1d270d30"; // Replace with actual logged-in user ID
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    if (!user) {
+        alert("You are not logged in.");
+        window.location.assign("../sign-in/login.html");
+        return;
+    }
 
     const { data, error } = await supabaseClient
         .from("job_listings")
@@ -40,32 +44,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             { title:"Company Location", field:"location" },
             { title:"Pay(/hr)", field:"hourly_pay" },
             {
-                title: "Available Jobs",
-                headerHozAlign: "center",
-                columns: [
-                    { title:"Company Name", field:"company_name" },
-                    { title:"Job Title", field:"job_title" },
-                    { title:"Company Rating", field: "company_rating" },
-                    { title:"Company Location", field:"location" },
-                    { title:"Pay(/hr)", field:"hourly_pay" },
-                    {
-                        title: "Actions",
-                        field: "actions",
-                        formatter: function(cell, formatterParams, onRender){
-                            let button = document.createElement("button");
-                            button.innerHTML = "+";
-                            button.classList.add("apply-btn");
-                            
-                            button.addEventListener("click", async function(){
-                                const rowData = cell.getRow().getData();
-                                await applyToJob(rowData, cell, CURRENT_USER_ID);
-                            });
-                            return button;
-                        }
-                    }
-                ],
-            },
+                title: "Actions",
+                field: "actions",
+                formatter: function(cell, formatterParams, onRender){
+                    let button = document.createElement("button");
+                    button.innerHTML = "+";
+                    button.classList.add("apply-btn");
+                    
+                    button.addEventListener("click", async function(){
+                        const rowData = cell.getRow().getData();
+                        await applyToJob(rowData, cell, user.id);
+                    });
+                    return button;
+                }
+            }
         ],
+
         pagination: "local",
         paginationSize: 10,
     });
@@ -76,7 +70,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function applyToJob(jobData, cell, studentId) {
     const button = cell.getElement().querySelector("button");
     
-    // Disable button to prevent multiple clicks
     button.disabled = true;
     button.innerHTML = "...";
 
@@ -93,7 +86,6 @@ async function applyToJob(jobData, cell, studentId) {
             .select();
 
         if (error) {
-            // Check if it's a duplicate application
             if (error.code === '23505') {
                 alert("You have already applied to this job!");
             } else {
@@ -105,11 +97,9 @@ async function applyToJob(jobData, cell, studentId) {
             return;
         }
 
-        // Success - change button to checkmark
         button.innerHTML = "✓";
         button.classList.add("applied");
         
-        // Show success message
         showNotification("Application submitted successfully!");
 
     } catch (err) {

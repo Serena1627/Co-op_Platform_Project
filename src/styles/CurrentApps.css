@@ -85,6 +85,193 @@
     font-weight: 600;
 }
 
+/* Resume Selection Popup */
+.resume-selection-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.popup-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+}
+
+.popup-header h3 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.popup-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.close-popup {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+.close-popup:hover {
+    color: #333;
+}
+
+.popup-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.popup-body h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.resume-options {
+    margin-bottom: 20px;
+}
+
+.resume-option {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.resume-option:hover {
+    background: #f5f5f5;
+    border-color: #007bff;
+}
+
+.resume-option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.resume-option label {
+    cursor: pointer;
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.default-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.resume-preview-container {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+.resume-preview-container h4 {
+    margin-top: 0;
+}
+
+.popup-footer {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.popup-footer button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Selected Applications Summary */
+.selected-apps-summary {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.selected-apps-summary h4 {
+    margin: 0 0 10px 0;
+    color: #495057;
+    font-size: 14px;
+}
+
+.apps-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.summary-app-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: white;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.summary-app-item i {
+    color: #667eea;
+    font-size: 14px;
+}
+
+.summary-app-item strong {
+    color: #212529;
+}
+
+/* Complete Application Button */
+.complete-application-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.complete-application-btn:hover {
+    background: #218838;
+}
+
 .content {
     padding: 30px;
 }
@@ -145,6 +332,116 @@
     justify-content: space-between;
     align-items: start;
     margin-bottom: 15px;
+}
+
+/* Select Apply Section */
+.select-apply-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.select-apply-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.select-apply-header label {
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.select-apply-info {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    margin-left: 8px;
+}
+
+.select-apply-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: white;
+}
+
+.select-apply-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.selected-count {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+}
+
+.select-apply-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.select-apply-btn:hover:not(:disabled) {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.select-apply-btn:disabled {
+    background: rgba(255, 255, 255, 0.5);
+    color: rgba(102, 126, 234, 0.5);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.select-apply-btn i {
+    font-size: 14px;
+}
+
+/* Selected Application Card Styling */
+.application-card.selected {
+    border: 2px solid #667eea;
+    background: linear-gradient(to right, rgba(102, 126, 234, 0.05), white);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.card-select-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin-right: 15px;
+    accent-color: #667eea;
+}
+
+.company-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.status-badge {
+    white-space: nowrap;
 }
 
 .company-info h3 {
@@ -244,7 +541,7 @@
     background-color: #5568d3;
 }
 
-/* Additional status badge colors (add to your existing status badges) */
+/* Additional status badge colors */
 .status-pending {
     background: #fff3e0;
     color: #f57c00;

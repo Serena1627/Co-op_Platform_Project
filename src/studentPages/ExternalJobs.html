@@ -1,11 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ExternalJobs</title>
+        <script type="module" src="../supabaseClient.js"></script>
+        <script type="module" src="ExternalJobs.js"></script>
+        <title>Co-op Application Tracker</title>
+        <link rel="stylesheet" href="../styles/Navbar.css">
+        <link rel="stylesheet" href="../styles/ExternalJobs.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    </head>
+    <body>
+        <div id="navbar-container"></div>
+        <script>
+            fetch('../components/Navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar-container').innerHTML = data;
+                })
+                .catch(err => console.error('Navbar load error:', err));
+        </script>
+
+        <div class="container">
+            <h1>Available Internships</h1>
+            <p class="subtitle">Browse external co-op and internship opportunities</p>
+            
+            <div id="jobs-container">
+                <div class="loading">
+                    <i class="fa fa-spinner"></i>
+                    <p>Loading opportunities...</p>
+                </div>
+            </div>
+        </div>
     
-</body>
+        
+    </body>
 </html>

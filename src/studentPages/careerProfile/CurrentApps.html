@@ -3,14 +3,12 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
-        <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
         <script type="module" src="../../supabaseClient.js"></script>
         <script type="module" src="CurrentApps.js"></script>
         <title>Co-op Application Tracker</title>
         <link rel="stylesheet" href="../../styles/JobPostings.css">
         <link rel="stylesheet" href="../../styles/CurrentApps.css">
-        <link rel="stylesheet" href="../../components/navbar.css">
+        <link rel="stylesheet" href="../../styles/Navbar.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     </head>
 
@@ -26,28 +24,28 @@
         </script>
 
         <div class="progress-section">
-            <div class="progress-title">Current Co-op Cycle: Spring 2026</div>
+            <div class="progress-title"></div>
             <div class="timeline">
-                <div class="timeline-progress" style="width: 60%;"></div>
+                <div class="timeline-progress" style="width: 20%;"></div>
                 
-                <div class="timeline-step completed">
-                    <div class="timeline-circle">✓</div>
+                <div class="timeline-step">
+                    <div class="timeline-circle">1</div>
                     <div class="timeline-label">Application<br>Period</div>
                 </div>
                 
-                <div class="timeline-step completed">
-                    <div class="timeline-circle">✓</div>
-                    <div class="timeline-label">Resume<br>Review</div>
+                <div class="timeline-step ">
+                    <div class="timeline-circle">2</div>
+                    <div class="timeline-label">Interview<br>Period</div>
                 </div>
                 
-                <div class="timeline-step active">
+                <div class="timeline-step ">
                     <div class="timeline-circle">3</div>
-                    <div class="timeline-label">Interview<br>Period</div>
+                    <div class="timeline-label">Ranking<br>Period</div>
                 </div>
                 
                 <div class="timeline-step">
                     <div class="timeline-circle">4</div>
-                    <div class="timeline-label">Selection<br>Period</div>
+                    <div class="timeline-label">Offer<br>Period</div>
                 </div>
                 
                 <div class="timeline-step">
@@ -60,13 +58,15 @@
         <div class="content">
             <div class="applications-header">
                 <h2>My Applications (5)</h2>
-                <div class="filter-tabs">
+                <div id="app-filters" class="filter-tabs">
                     <button class="tab active">All</button>
                     <button class="tab">Active</button>
                     <button class="tab">Pending</button>
                     <button class="tab">Completed</button>
                 </div>
             </div>
+
+            <div id="mass-apply"></div>
 
             <div class="application-card">
                 <div class="card-header">
