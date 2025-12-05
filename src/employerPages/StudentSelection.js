@@ -134,7 +134,7 @@ function createApplicationCard(application, student) {
             </div>
         </div>
 
-        <button class="see-more-btn" onclick="viewApplication('${application.id}', '${student.id}')">
+        <button class="see-more-btn" onclick="viewApplication('${application.application_id}', '${student.student_id}')">
             <i class="fa fa-file-text"></i> View Full Application
         </button>
     `;
@@ -145,6 +145,7 @@ function createApplicationCard(application, student) {
 function viewApplication(applicationId, studentId) {
     window.location.href = `ApplicationDetail.html?applicationId=${applicationId}&studentId=${studentId}`;
 }
+
 
 async function getJobApplications(companyId = null, jobId = null) {
     let filterId = companyId;
