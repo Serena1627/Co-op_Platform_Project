@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (!user) {
         alert("You are not logged in.");
-        window.location.assign("/src/sign-in/login.html");
+        window.location.assign("/public/sign-in/login.html");
         return;
     }
     
