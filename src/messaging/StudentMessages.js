@@ -24,7 +24,7 @@ async function loadConversations() {
 
   const { data, error } = await supabaseClient
     .from("conversations")
-    .select("id, application_id, employer_id, created_at, student_id")
+    .select("id, application_id, recruiter_id, created_at, student_id, recruiters(id, first_name, last_name, company_name), current_applications(id, job_listings(job_title))")
     .eq("student_id", userId)
     .order("created_at", { ascending: false });
 
@@ -38,15 +38,17 @@ async function loadConversations() {
     li.className = "st-conv-item";
     li.tabIndex = 0;
 
-    const employerName = conv.student_profile ? conv.student_profile.first_name + " " + conv.student_profile.last_name : conv.employer_id;
-    const jobTitle = conv.current_applications?.job_id || "Job";
+    const recruiterName = conv.recruiters ? `${conv.recruiters.first_name} ${conv.recruiters.last_name}`: conv.recruiter_id;
+    const companyName = conv.recruiters ? `${conv.recruiters.company_name}`: conv.recruiter_id;
+    const jobTitle = conv.current_applications?.job_listings?.job_title || "Job";
 
     li.innerHTML = `
       <div class="st-conv-left">
-        <div class="st-avatar">${employerName}</div>
+        <div class="st-avatar">${companyName}</div>
         <div class="st-conv-meta">
-          <div class="st-conv-title">${employerName}</div>
-          <div class="st-conv-sub">${jobTitle}</div>
+          <div class="st-conv-title">${companyName}</div>
+          <div class="st-conv-sub">Recruiter: ${recruiterName}</div>
+          <div class="st-conv-sub">Job: ${jobTitle}</div>
         </div>
       </div>
       <div class="st-conv-time">${new Date(conv.created_at).toLocaleString()}</div>

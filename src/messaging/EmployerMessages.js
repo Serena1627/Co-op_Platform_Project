@@ -89,8 +89,8 @@ async function loadInterviewApplications() {
 async function startConversation() {
   const applicationId = studentSelect.value;
   const studentId = studentSelect.selectedOptions[0]?.dataset?.studentId;
-  const employerId = await getUserId();
-  if (!employerId) {
+  const recruiterId = await getUserId();
+  if (!recruiterId) {
     alert("Please sign in to start a conversation.");
     return;
   }
@@ -116,7 +116,7 @@ async function startConversation() {
     const payload = {
       application_id: applicationId,
       student_id: studentId,
-      employer_id: employerId,
+      recruiter_id: recruiterId,
       created_at: new Date().toISOString()
     };
     const { data: newConv, error: insertErr } = await supabaseClient
@@ -148,12 +148,12 @@ async function loadConversations() {
   //convLoading.style.display = "block";
   conversationsList.style.opacity = "0.3";
 
-  const employerId = await getUserId();
-  if (!employerId) return;
+  const recruiterId = await getUserId();
+  if (!recruiterId) return;
   const { data, error } = await supabaseClient
     .from("conversations")
-    .select("id, application_id, student_id, employer_id, created_at")
-    .eq("employer_id", employerId)
+    .select("id, application_id, student_id, recruiter_id, created_at")
+    .eq("recruiter_id", recruiterId)
     .order("created_at", { ascending: false });
 
   if (error) {
