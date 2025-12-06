@@ -1,6 +1,6 @@
 import { supabaseClient } from "../supabaseClient.js";
 
-const currentDate = new Date();
+const currentDate = new Date().toISOString().split("T")[0];
 const queryParams = new URLSearchParams(window.location.search);
 const applicationId = queryParams.get("applicationId");
 const studentId = queryParams.get("studentId");
@@ -48,6 +48,7 @@ const messageNote = document.getElementById("message-availability-note");
 let applicationRecord = null;
 let studentRecord = null;
 let jobRecord = null;
+let coop_experience = null;
 let calendarRecord = null;
 let resumeFile = null;
 let resumeSignedUrl = null;
@@ -103,6 +104,17 @@ async function init() {
             mainPageLink.href = `JobPosts.html?company_id=${jobRecord.company_id}`;
         }
 
+        if (studentRecord.coop_number){
+            if (studentRecord.coop_number == 1){
+                coop_experience = "First Co-op";
+            } else if (studentRecord.coop_number === 2){
+                coop_experience = "Second Co-op";
+            } else if (studentRecord.coop_number === 3){
+                coop_experience = "Third Co-op";
+            }
+        }
+        
+
         const { data: defaultResume, error: defaultError } = await supabaseClient
             .from("resume_files")
             .select("*")
@@ -138,8 +150,8 @@ async function init() {
                 .from("coop_calendar")
                 .select("*")
                 .eq("coop_cycle", studentRecord.coop_cycle)
-                .order("id", { ascending: false })
-                .limit(1)
+                .gte("results_available", currentDate)
+                .lte("job_postings_available", currentDate)
                 .maybeSingle();
 
             calendarRecord = calendarData;
@@ -158,7 +170,7 @@ function renderAll() {
     studentNameEl.innerText = `${studentRecord.first_name || ""} ${studentRecord.last_name || ""}`;
     studentAvatarEl.innerText = `${(studentRecord.first_name?.charAt(0) || "")}${(studentRecord.last_name?.charAt(0) || "")}`;
     studentMajorEl.innerText = studentRecord.major || "N/A";
-    studentYearEl.innerText = `${studentRecord.college_year || "N/A"} · Coop ${studentRecord.coop_number || "-"}`;
+    studentYearEl.innerText = `${studentRecord.college_year || "N/A"} · ${coop_experience || "-"}`;
     studentEmailEl.innerText = studentRecord.email_address || "N/A";
     drexelIdEl.innerText = studentRecord.drexel_student_id || "N/A";
     studentGpaEl.innerText = (studentRecord.gpa !== null && studentRecord.gpa !== undefined) ? studentRecord.gpa : "N/A";
@@ -209,40 +221,21 @@ function renderAll() {
 
     appContentEl.style.display = "block";
 }
-function applyCoopCalendarGating() {
-    if (!calendarRecord) return;
 
-    const now = new Date();
+function applyCoopCalendarGating(){
+    const interviews_start = calendarRecord.interview_period_start;
+    const ranking_period_start = calendarRecord.interview_period_end;
+    const ranking_period_end = calendarRecord.view_rankings;
+    const offer_granting_period = calendarRecord.rankings_due;
 
-    const d_requests_due = new Date(calendarRecord.interview_requests_due);
-    const d_interview_end = new Date(calendarRecord.interview_period_end);
-    const d_view_rankings = new Date(calendarRecord.view_rankings);
-
-    if (now < d_requests_due) {
-        btnInReview.disabled = true;
-        btnInterview.disabled = true;
-        btnReject.disabled = true;
-        btnInReview.title = "In-review opens after interview request deadline.";
-        btnInterview.title = "Interview selection opens after interview request deadline.";
-    }
-
-    if (now < d_interview_end) {
-        btnOffer.disabled = true;
-        btnRanked.disabled = true;
-        btnOffer.title = "Offers open after interview period ends.";
-        btnRanked.title = "Rankings open after interview period ends.";
-    }
-
-    const d_rankings_due = new Date(calendarRecord.rankings_due);
-    if (now > d_rankings_due) {
-        btnOffer.disabled = true;
-        btnRanked.disabled = true;
-        btnInterview.disabled = true;
-        btnInReview.disabled = true;
-        btnReject.disabled = true;
+    if (currentDate <= interviews_start){
+        btnOffer.remove();
+        btnRanked.remove();
+    }else if (currentDate <= ranking_period_end){
+        btnInReview.remove();
+        btnInterview.remove();
     }
 }
-
 
 function setStatusBadge(status) {
     applicationStatusEl.innerText = status || "new";
@@ -270,16 +263,17 @@ async function updateStatus(newStatus) {
         applicationRecord = data;
         setStatusBadge(applicationRecord.status);
         alert(`Status updated to "${newStatus}".`);
+
+        if (newStatus === "offer" && applicationRecord.no_of_open_positions){
+            const { data: updatedData, error: updatedError} = await supabaseClient
+                .from("job_listings")
+                .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
+                .eq("id", job_id)
+                .select()
+                .maybeSingle();
+            if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
+        }
     } finally { hideLoading(); }
-}
-
-function hideStageButtons(){
-    if (!calendarRecord){ 
-        return
-    }
-    if (calendarRecord.interview_period_start ){
-
-    }
 }
 
 function evaluateMessagingAvailability() {
