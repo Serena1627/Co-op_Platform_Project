@@ -212,36 +212,46 @@ async function loadTable(companyId = null) {
                         title: "Actions",
                         field: "actions",
                         formatter: function(cell) {
-                            let container = document.createElement("div");
-                            
-                            let editButton = document.createElement("button");
+                            const container = document.createElement("div");
+
+                            const editButton = document.createElement("button");
                             editButton.innerHTML = "Edit";
                             editButton.className = "edit-btn";
-                            editButton.addEventListener("click", function() {
+                            editButton.addEventListener("click", function(e) {
                                 const jobId = cell.getRow().getData().id;
                                 showForm(jobId);
                             });
-                            
-                            let deleteButton = document.createElement("button");
+
+                            const deleteButton = document.createElement("button");
                             deleteButton.innerHTML = "Delete";
                             deleteButton.className = "delete-btn";
-                            deleteButton.addEventListener("click", function() {
+                            deleteButton.addEventListener("click", function(e) {
                                 const jobId = cell.getRow().getData().id;
                                 deleteJobPosting(jobId);
                             });
-                            
+
                             container.appendChild(editButton);
                             container.appendChild(deleteButton);
                             return container;
                         }
                     }
-                ],
-            },
+                ]
+            }
         ],
         pagination: "local",
         paginationSize: 10,
     });
+
+    table.on("rowClick", function(e, row){
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+            return;
+        }
+        const rowData = row.getData();
+        console.log("Row clicked:", rowData);
+        window.location.href = `StudentSelection.html?jobId=${rowData.id}`;
+    });
 }
+
 
 window.showForm = showForm;
 window.hideForm = hideForm;

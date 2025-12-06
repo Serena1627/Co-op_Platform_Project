@@ -63,6 +63,9 @@ body {
     background: #c82333;
 }
 
+#student-jobs .tabulator-row {
+    cursor: pointer;
+}
 /* ===== FORM VIEW ===== */
 .form-view {
     display: none;
