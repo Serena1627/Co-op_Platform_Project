@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Messaging</title>
+<link rel="stylesheet" href="../styles/Messaging.css" />
+<link rel="stylesheet" href="../styles/EmployerNavBar.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div id="navbar-container"></div>
+<script>
+  fetch('../components/EmployerNavbar.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('navbar-container').innerHTML = data;
+    })
+    .catch(err => console.error('Navbar load error:', err));
+</script>
+
+
+<div class="start-conversation">
+  <select id="student-select">
+    <option value="">Loading students...</option>
+  </select>
+  <button id="start-conversation-btn">Start Conversation</button>
+</div>
+
+<div id="app" class="messaging-app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Messages</h2>
+      <div class="search">
+        <input id="search-input" placeholder="Search conversations..." />
+      </div>
+    </div>
+    <div id="conversations-list" class="conversations-list"></div>
+  </aside>
+
+  <main class="chat-area">
+    <div class="chat-header">
+      <div>
+        <div id="chat-company" class="chat-company">No conversation selected</div>
+        <div id="chat-job" class="chat-job muted"></div>
+      </div>
+      <div id="chat-meta" class="chat-meta muted"></div>
+    </div>
+
+    <div id="messages-container" class="messages-container"></div>
+
+    <div class="chat-input-area">
+      <label class="attach-btn" title="Attach file">
+        <input id="file-input" type="file" style="display:none" />
+        <i class="fa fa-paperclip"></i>
+      </label>
+      <input id="message-input" type="text" placeholder="Type your message..." />
+      <button id="send-btn" class="send-btn"><i class="fa fa-paper-plane"></i></button>
+    </div>
+  </main>
+</div>
+
+<script type="module" src="Messaging.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { supabaseClient } from "../supabaseClient.js";
+const FORCE_ENABLE_MESSAGES = true;
 
 const queryParams = new URLSearchParams(window.location.search);
 const applicationId = queryParams.get("applicationId");
@@ -238,6 +239,18 @@ function applyCoopCalendarGating() {
         btnInReview.disabled = true;
         btnReject.disabled = true;
     }
+
+    const TEST_MODE = true;
+    if (TEST_MODE) {
+    btnInReview.disabled = false;
+    btnInterview.disabled = false;
+    btnReject.disabled = false;
+    btnOffer.disabled = false;
+    btnRanked.disabled = false;
+    return;
+}
+
+    
 }
 
 
@@ -271,6 +284,10 @@ async function updateStatus(newStatus) {
 }
 
 function evaluateMessagingAvailability() {
+    if (FORCE_ENABLE_MESSAGES) {
+        enableMessaging();
+        return;
+    }
     btnMessage.disabled = true;
     messageNote.innerText = "Messaging available after interview view period.";
     if (!calendarRecord) { messageNote.innerText = "Messaging unavailable (calendar not found)."; return; }
