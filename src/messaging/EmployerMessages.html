@@ -16,7 +16,7 @@
       .then(data => { document.getElementById('navbar-container').innerHTML = data; })
       .catch(err => console.error('Navbar load error:', err));
   </script>
-
+  <div style="height:60px;"></div> 
   <div class="em-messages-container">
     <aside class="em-sidebar">
       <div class="em-sidebar-header">
@@ -37,6 +37,9 @@
       </div>
 
       <div id="conversations-list" class="em-conversations"></div>
+      <div id="conversations-loading" class="loading" style="display:none;">Loading conversations…</div>
+      <div id="messages-loading" class="loading" style="display:none;">Loading messages…</div>
+
     </aside>
 
     <main class="em-chat-area">

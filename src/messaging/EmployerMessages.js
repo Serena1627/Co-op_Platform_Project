@@ -14,6 +14,7 @@ const chatJobTitle = document.getElementById("chat-job-title");
 const chatMeta = document.getElementById("chat-meta");
 const filterJobs = document.getElementById("filter-jobs");
 
+
 let currentConversation = null;
 let conversations = [];
 let interviewApps = [];
@@ -131,11 +132,22 @@ async function startConversation() {
     currentConversation = (newConv && newConv[0]) || null;
   }
 
-  await loadConversations();
   if (currentConversation) loadMessages(currentConversation.id);
 }
 
+let isLoadingConversations = false;
+
 async function loadConversations() {
+  if (isLoadingConversations) {
+    return;
+  } else {
+    isLoadingConversations = true;
+  }
+
+  const convLoading = document.getElementById("conversations-loading");
+  //convLoading.style.display = "block";
+  conversationsList.style.opacity = "0.3";
+
   const employerId = await getUserId();
   if (!employerId) return;
   const { data, error } = await supabaseClient
@@ -209,6 +221,10 @@ async function loadConversations() {
   });
 
   highlightConversation(currentConversation?.id);
+
+  convLoading.style.display = "none";
+  conversationsList.style.opacity = "1";
+  isLoadingConversations = false;
 }
 
 function highlightConversation(convId) {
@@ -226,58 +242,86 @@ async function loadMessages(conversationId) {
   chatEmpty.style.display = "none";
   chatPanel.style.display = "flex";
 
-  const conv = conversations.find(c => c.id === conversationId) || currentConversation;
-  chatStudentName.textContent = `Student: ${conv.student_id}`;
-  chatJobTitle.textContent = "Loading job...";
-  chatMeta.textContent = `Conversation ID: ${conversationId}`;
+  const messagesLoading = document.getElementById("messages-loading");
+  messagesLoading.style.display = "block";
+  messagesContainer.style.opacity = "0.3";
 
-  const { data: messages, error } = await supabaseClient
-    .from("messages")
-    .select("id, sender_id, content, attachment_url, created_at")
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true });
+  const { data: conv, error: convErr } = await supabaseClient
+    .from("conversations")
+    .select(`
+      id,
+      application_id,
+      student_id,
+      student_profile (
+        first_name,
+        last_name
+      ),
+      current_applications (
+        job_id
+      )
+    `)
+    .eq("id", conversationId)
+    .maybeSingle();
 
-  if (error) {
-    console.error(error);
-    messagesContainer.innerHTML = "<div class='em-msg system'>Unable to load messages.</div>";
+  if (convErr || !conv) {
+    console.error(convErr);
     return;
   }
 
-  const appRow = (await supabaseClient
-    .from("current_applications")
-    .select("id, job_id")
-    .eq("id", conv.application_id)
-    .maybeSingle()).data;
+  let jobTitle = "Job";
+  const jobId = conv.current_applications?.job_id;
 
-  if (appRow && appRow.job_id) {
-    const { data: j } = await supabaseClient
+  if (jobId) {
+    const { data: job } = await supabaseClient
       .from("job_listings")
       .select("job_title")
-      .eq("id", appRow.job_id)
+      .eq("id", jobId)
       .maybeSingle();
-    chatJobTitle.textContent = j?.job_title || "Job";
-  } else {
-    chatJobTitle.textContent = "Job";
+
+    if (job) jobTitle = job.job_title;
+  }
+
+  const studentName = conv.student_profile
+    ? `${conv.student_profile.first_name} ${conv.student_profile.last_name}`
+    : conv.student_id;
+
+  chatStudentName.textContent = studentName;
+  chatJobTitle.textContent = jobTitle;
+
+
+  const { data: messages, error: msgErr } = await supabaseClient
+    .from("messages")
+    .select("id, conversation_id, sender_id, message_text, attachment_url, created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
+
+  if (msgErr) {
+    console.error(msgErr);
+    messagesContainer.innerHTML =
+      "<div class='em-msg system'>Unable to load messages.</div>";
+    return;
   }
 
   const userId = await getUserId();
-
   messagesContainer.innerHTML = "";
+
   messages.forEach(m => {
     const el = document.createElement("div");
-    el.className = m.sender_id === userId ? "em-msg em-msg-right" : "em-msg em-msg-left";
+    el.className = m.sender_id === userId
+      ? "em-msg em-msg-right"
+      : "em-msg em-msg-left";
 
     const p = document.createElement("div");
     p.className = "em-msg-body";
-    p.textContent = m.content || "";
+    p.textContent = m.message_text|| "";
     el.appendChild(p);
 
     if (m.attachment_url) {
       const a = document.createElement("a");
       a.href = m.attachment_url;
       a.target = "_blank";
-      a.textContent = "📎 Attachment";
       a.className = "em-attachment";
+      a.textContent = "📎 Attachment";
       el.appendChild(a);
     }
 
@@ -290,7 +334,11 @@ async function loadMessages(conversationId) {
   });
 
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  messagesLoading.style.display = "none";
+  messagesContainer.style.opacity = "1";
 }
+
 
 
 async function sendMessage() {
@@ -310,7 +358,7 @@ async function sendMessage() {
   const { error } = await supabaseClient.from("messages").insert([{
     conversation_id: currentConversation.id,
     sender_id: await getUserId(),
-    content: text,
+    message_text: text,
     attachment_url: attachmentUrl,
     created_at: new Date().toISOString()
   }]);
