@@ -232,8 +232,9 @@ function highlightConversation(convId) {
   if (!convId) return;
   const all = Array.from(document.querySelectorAll(".em-conv-item"));
   all.forEach(item => {
-    if (item && item.innerText.includes(convId)) {}
-  });
+  if (item && item.innerText.includes(convId)) item.classList.add("active");
+});
+
 }
 
 async function loadMessages(conversationId) {
@@ -241,10 +242,6 @@ async function loadMessages(conversationId) {
 
   chatEmpty.style.display = "none";
   chatPanel.style.display = "flex";
-
-  const messagesLoading = document.getElementById("messages-loading");
-  messagesLoading.style.display = "block";
-  messagesContainer.style.opacity = "0.3";
 
   const { data: conv, error: convErr } = await supabaseClient
     .from("conversations")
@@ -335,8 +332,6 @@ async function loadMessages(conversationId) {
 
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-  messagesLoading.style.display = "none";
-  messagesContainer.style.opacity = "1";
 }
 
 
