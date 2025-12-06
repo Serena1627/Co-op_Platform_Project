@@ -52,6 +52,11 @@ let calendarRecord = null;
 let resumeFile = null;
 let resumeSignedUrl = null;
 
+function isBefore(dateStr) {
+    if (!dateStr) return false;
+    return new Date() < new Date(dateStr);
+}
+
 if (!applicationId || !studentId) {
     showError("Missing applicationId or studentId in URL.");
 } else {
@@ -149,6 +154,7 @@ async function init() {
 }
 
 function renderAll() {
+    applyCoopCalendarGating();
     studentNameEl.innerText = `${studentRecord.first_name || ""} ${studentRecord.last_name || ""}`;
     studentAvatarEl.innerText = `${(studentRecord.first_name?.charAt(0) || "")}${(studentRecord.last_name?.charAt(0) || "")}`;
     studentMajorEl.innerText = studentRecord.major || "N/A";
@@ -203,6 +209,40 @@ function renderAll() {
 
     appContentEl.style.display = "block";
 }
+function applyCoopCalendarGating() {
+    if (!calendarRecord) return;
+
+    const now = new Date();
+
+    const d_requests_due = new Date(calendarRecord.interview_requests_due);
+    const d_interview_end = new Date(calendarRecord.interview_period_end);
+    const d_view_rankings = new Date(calendarRecord.view_rankings);
+
+    if (now < d_requests_due) {
+        btnInReview.disabled = true;
+        btnInterview.disabled = true;
+        btnReject.disabled = true;
+        btnInReview.title = "In-review opens after interview request deadline.";
+        btnInterview.title = "Interview selection opens after interview request deadline.";
+    }
+
+    if (now < d_interview_end) {
+        btnOffer.disabled = true;
+        btnRanked.disabled = true;
+        btnOffer.title = "Offers open after interview period ends.";
+        btnRanked.title = "Rankings open after interview period ends.";
+    }
+
+    const d_rankings_due = new Date(calendarRecord.rankings_due);
+    if (now > d_rankings_due) {
+        btnOffer.disabled = true;
+        btnRanked.disabled = true;
+        btnInterview.disabled = true;
+        btnInReview.disabled = true;
+        btnReject.disabled = true;
+    }
+}
+
 
 function setStatusBadge(status) {
     applicationStatusEl.innerText = status || "new";
