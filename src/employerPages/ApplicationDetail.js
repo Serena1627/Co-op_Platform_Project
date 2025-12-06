@@ -1,5 +1,6 @@
 import { supabaseClient } from "../supabaseClient.js";
 
+const currentDate = new Date();
 const queryParams = new URLSearchParams(window.location.search);
 const applicationId = queryParams.get("applicationId");
 const studentId = queryParams.get("studentId");
@@ -20,9 +21,7 @@ const studentAdvisorEl = document.getElementById("student-advisor");
 
 const jobTitleEl = document.getElementById("job-title");
 const companyNameEl = document.getElementById("company-name");
-const appliedDateEl = document.getElementById("applied-date");
 const requiresCitizenshipEl = document.getElementById("requires-citizenship");
-const primaryContactEl = document.getElementById("primary-contact");
 const openPositionsEl = document.getElementById("open-positions");
 const noApplicantsEl = document.getElementById("no-applicants");
 const applicationStatusEl = document.getElementById("application-status");
@@ -72,6 +71,7 @@ async function init() {
         if (!appData) throw new Error("Application not found.");
         applicationRecord = appData;
 
+
         const { data: studentData, error: studentError } = await supabaseClient
             .from("student_profile")
             .select("*")
@@ -91,6 +91,11 @@ async function init() {
 
             if (jobError) throw jobError;
             jobRecord = jobData;
+        }
+
+        const mainPageLink = document.getElementById('main-page-link');
+        if (mainPageLink) {
+            mainPageLink.href = `JobPosts.html?company_id=${jobRecord.company_id}`;
         }
 
         const { data: defaultResume, error: defaultError } = await supabaseClient
@@ -156,9 +161,7 @@ function renderAll() {
 
     jobTitleEl.innerText = applicationRecord.job_title || (jobRecord ? jobRecord.job_title : "N/A");
     companyNameEl.innerText = applicationRecord.company_name || "N/A";
-    appliedDateEl.innerText = applicationRecord.applied_date ? new Date(applicationRecord.applied_date).toLocaleString() : "N/A";
     requiresCitizenshipEl.innerText = applicationRecord.requires_citizenship ? "Yes" : "No";
-    primaryContactEl.innerText = applicationRecord.primary_contact || "N/A";
     openPositionsEl.innerText = applicationRecord.no_of_open_positions ?? "N/A";
     noApplicantsEl.innerText = applicationRecord.no_o_applications ?? (jobRecord?.no_applicants ?? "N/A");
 
@@ -230,12 +233,21 @@ async function updateStatus(newStatus) {
     } finally { hideLoading(); }
 }
 
+function hideStageButtons(){
+    if (!calendarRecord){ 
+        return
+    }
+    if (calendarRecord.interview_period_start ){
+
+    }
+}
+
 function evaluateMessagingAvailability() {
     btnMessage.disabled = true;
     messageNote.innerText = "Messaging available after interview view period.";
     if (!calendarRecord) { messageNote.innerText = "Messaging unavailable (calendar not found)."; return; }
     if (calendarRecord.view_interviews_granted === true) enableMessaging();
-    else if(calendarRecord.interview_period_start && new Date() >= new Date(calendarRecord.interview_period_start)) enableMessaging();
+    else if(calendarRecord.interview_period_start && currentDate >= new Date(calendarRecord.interview_period_start)) enableMessaging();
     else messageNote.innerText = `Messaging opens on: ${calendarRecord.interview_period_start ? new Date(calendarRecord.interview_period_start).toLocaleString() : "TBD"}`;
 }
 
