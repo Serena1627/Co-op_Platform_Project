@@ -449,12 +449,14 @@ async function updateStatus(newStatus) {
         if (newStatus === "offer") {
             const canOffer = await validateOfferNumber();
             if (!canOffer) return hideLoading();
+            await updateOpenPositions();
             await setOfferDecision("offer sent");
         }
 
         if (newStatus === "ranked") {
             const canRank = await validateRanking();
             if (!canRank) return hideLoading();
+            await setOfferDecision("ranked");
         }
 
         if (newStatus === "reject"){
@@ -481,6 +483,18 @@ async function updateStatus(newStatus) {
         hideLoading();
     }
 }
+
+
+async function updateOpenPositions(){
+    const { data: updatedData, error: updatedError} = await supabaseClient
+        .from("job_listings")
+        .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
+        .eq("id", job_id)
+        .select()
+        .maybeSingle();
+    if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
+}
+
 
 async function setOfferDecision(decision){
     const { error } = await supabaseClient
