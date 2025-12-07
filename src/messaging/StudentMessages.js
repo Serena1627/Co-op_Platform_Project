@@ -132,28 +132,60 @@ async function loadConversations() {
 
   conversations = data || [];
   conversationsList.innerHTML = "";
+  const { data: unreadMessages } = await supabaseClient
+    .from("messages")
+    .select("conversation_id")
+    .eq("is_read", false)
+    .neq("sender_id", userId);
+
+  const unreadMap = {};
+  unreadMessages.forEach(m => {
+    unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+  });
 
   conversations.forEach(conv => {
     const li = document.createElement("div");
     li.className = "st-conv-item";
     li.tabIndex = 0;
 
+    const unreadCount = unreadMap[conv.id] || 0;
+
     const recruiterName = conv.recruiters ? `${conv.recruiters.first_name} ${conv.recruiters.last_name}`: conv.recruiter_id;
     const companyName = conv.recruiters ? `${conv.recruiters.company_name}`: conv.recruiter_id;
     const jobTitle = conv.current_applications?.job_listings?.job_title || "Job";
+    const unreadDeterminator = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : "";
 
     li.innerHTML = `
       <div class="st-conv-left">
-        <div class="st-avatar">${companyName}</div>
+        <div class="st-avatar">${companyName}</div> 
         <div class="st-conv-meta">
-          <div class="st-conv-title">${companyName}</div>
+          <div class="st-conv-title">${companyName} ${unreadDeterminator}</div>
           <div class="st-conv-sub">Recruiter: ${recruiterName}</div>
           <div class="st-conv-sub">Job: ${jobTitle}</div>
         </div>
       </div>
       <div class="st-conv-time">${new Date(conv.created_at).toLocaleString()}</div>
-    `;
-    li.onclick = () => { currentConversation = conv; loadMessages(conv.id); highlightConversation(conv.id); };
+       `;
+    li.onclick = async () => {
+       currentConversation = conv;
+       highlightConversation(conv.id); 
+
+       const userId = await getUserId();
+
+       const {error : markReadErr} = await supabaseClient
+        .from("messages")
+        .update({is_read: true})
+        .eq("conversation_id", conv.id)
+        .neq("sender_id", userId);
+
+      if (markReadErr) {
+        console.error("Failed to mark messages as read:", markReadErr);
+      }
+      
+       await loadMessages(conv.id);
+       await loadConversations();
+      
+      };
     conversationsList.appendChild(li);
   });
 
@@ -211,6 +243,14 @@ async function loadMessages(conversationId) {
   });
 
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  const { error: markReadErr } = await supabaseClient
+    .from("messages")
+    .update({ is_read: true })
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", userId);
+
+    
+  if (markReadErr) console.error("Failed to mark messages as read:", markReadErr);
 }
 
 async function sendMessage() {
@@ -256,11 +296,17 @@ sendBtn.addEventListener("click", sendMessage);
 async function subscribeRealtime() {
   supabaseClient.channel('messages')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-      if (payload.new && payload.new.conversation_id === currentConversation?.id) {
-        loadMessages(currentConversation.id);
+      if (!payload.new) {
+        return;
       }
-    })
-    .subscribe();
+      if (payload.new.conversation_id === currentConversation?.id) {
+      loadMessages(currentConversation.id);
+    }
+
+    // Optionally update unread count in the conversation list
+    loadConversations();
+  })
+  .subscribe();
 }
 
 async function init() {

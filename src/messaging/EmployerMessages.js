@@ -332,6 +332,14 @@ async function loadMessages(conversationId) {
 
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+  const { error: markReadErr } = await supabaseClient
+    .from("messages")
+    .update({ is_read: true })
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", userId);
+
+  if (markReadErr) console.error("Failed to mark messages as read:", markReadErr);
+
 }
 
 
