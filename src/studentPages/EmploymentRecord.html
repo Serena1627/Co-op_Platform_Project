@@ -3,9 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <script type="module" src="../components/coop-information.js"></script>
+    <title>Employment Record</title>
+    <link rel="stylesheet" href="../styles/EmploymentRecord.css">
+    <link rel="stylesheet" href="../styles/Navbar.css">
 </head>
 <body>
+    <div id="navbar-container"></div>
+    <script>
+        fetch('../components/Navbar.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('navbar-container').innerHTML = data;
+        });
+    </script>
+
+    <main class="container">
+    <header class="page-header">
+      <div>
+        <h1>Employment Records</h1>
+        <p class="muted">Your accepted co-ops, job details, and reviews.</p>
+      </div>
+      <div id="auth-actions" class="auth-actions">
+        <span id="user-status" class="muted"></span>
+      </div>
+    </header>
+
+    <section id="summary" class="summary" aria-live="polite">
+      <div class="stat">
+        <div class="stat-label">Total Co-ops</div>
+        <div id="total-coops" class="stat-value">—</div>
+      </div>
+    </section>
+
+    <section id="records" class="records" aria-live="polite">
+      <div id="loading" class="loading">Loading your employment records…</div>
+    </section>
+
+    <template id="record-template">
+      <article class="card job-card" data-job-id="">
+        <header class="card-header">
+          <div class="card-left">
+            <div class="logo" aria-hidden="true"></div>
+            <div class="title-block">
+              <h2 class="job-title"></h2>
+              <div class="company-and-location">
+                <span class="company-name"></span>
+                <span class="dot">•</span>
+                <span class="location"></span>
+                <span class="dot">•</span>
+                <span class="work-type"></span>
+              </div>
+              <div class="term-and-dates muted"></div>
+            </div>
+          </div>
+
+          <div class="card-right">
+            <div class="status-pill" aria-hidden="true">Accepted</div>
+            <button class="expand-btn" aria-expanded="false" aria-label="Expand job details">+</button>
+          </div>
+        </header>
+
+        <div class="card-body" hidden>
+          <div class="job-details">
+            <h3 class="section-title">Job Details</h3>
+            <div class="info-block">
+                <div class="info-value">Description</div>
+                <p class="job-description"></p>
+            </div>
+
+            <div class="grid-2">
+              <div class="info-block">
+                <div class="info-label">Compensation</div>
+                <div class="info-value compensation"></div>
+              </div>
+              <div class="info-block">
+                <div class="info-label">Openings</div>
+                <div class="info-value openings"></div>
+              </div>
+              <div class="info-block">
+                <div class="info-label">Desired majors</div>
+                <div class="info-value majors"></div>
+              </div>
+              <div class="info-block">
+                <div class="info-label">GPA</div>
+                <div class="info-value gpa"></div>
+              </div>
+            </div>
+            <div></div>
+            <div class="info-block full">
+              <div class="info-label">Qualifications</div>
+              <div class="info-value qualifications"></div>
+            </div>
+
+            <div class="recruiter-block">
+              <h4 class="section-subtitle">Recruiter</h4>
+              <div class="recruiter-row">
+                <div>
+                  <div class="recruiter-name"></div>
+                  <div class="recruiter-company muted"></div>
+                </div>
+                <div class="recruiter-contact">
+                  <a class="recruiter-email link" href="#">Email</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="meta-row muted">
+              <div>In-person interviews: <span class="meta-value in-person"></span></div>
+              <div>Requires transportation: <span class="meta-value transport"></span></div>
+              <div>Follows SCDC calendar: <span class="meta-value scdc"></span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <h3>No employment records found</h3>
+      <p>You don't have any accepted co-op offers yet. Once an offer is accepted it will show up here.</p>
+    </div>
+  </main>
+
+  <script type="module" src="EmploymentRecord.js"></script>
     
 </body>
 </html>
