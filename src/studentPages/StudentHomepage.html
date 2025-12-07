@@ -12,12 +12,14 @@
 <body>
     <div id="navbar-container"></div>
     <script>
-        fetch('../components/Navbar.html')
+    fetch('../components/Navbar.html')
         .then(response => response.text())
         .then(data => {
             document.getElementById('navbar-container').innerHTML = data;
-        });
+        })
+        .catch(err => console.error('Navbar load error:', err));
     </script>
+
     <div id="intro-section">
         <img id="dragon" src="../components/drexel-dragon.png" alt="Drexel Dragon">
         <div id="intro-text">
