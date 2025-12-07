@@ -198,25 +198,65 @@ async function loadConversations() {
   jobRows.forEach(j => jobMap[j.id] = j.job_title);
 
   conversationsList.innerHTML = "";
+
+  const userId = await getUserId();
+
+  const { data: unreadMessages} = await supabaseClient
+    .from("messages")
+    .select("conversation_id")
+    .eq("is_read", false)
+    .neq("sender_id", userId);
+
+  const unreadMap = {};
+    unreadMessages?.forEach(m => {
+      unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+    });
+
   conversations.forEach(conv => {
     const li = document.createElement("div");
     li.className = "em-conv-item";
+    li.dataset.convId = conv.id;
     li.tabIndex = 0;
+
+    const unreadCount = unreadMap[conv.id] || 0;
+
     const app = appMap[conv.application_id];
     const title = app ? (jobMap[app.job_id] || "Job") : "Job";
     const studentName = app && app.student_profile ? app.student_profile.first_name + " " + app.student_profile.last_name : conv.student_id;
     const major = app && app.student_profile ? app.student_profile.major : conv.major;
+    const unreadDeterminator = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : "";
 
     li.innerHTML = `<div class="em-conv-left">
         <div class="em-avatar">${studentName}</div>
         <div class="em-conv-meta">
-          <div class="em-conv-title">${studentName}</div>
+          <div class="em-conv-title">${studentName} ${unreadDeterminator}</div>
           <div class="em-conv-sub">${title}</div>
           <div class="em-conv-sub">${major}</div>
         </div>
       </div>
       <div class="em-conv-time">${new Date(conv.created_at).toLocaleString()}</div>`;
-    li.onclick = () => { currentConversation = conv; loadMessages(conv.id); highlightConversation(conv.id); };
+    li.onclick = async () => {
+      currentConversation = conv;
+      highlightConversation(conv.id);
+
+      const {error : markReadErr} = await supabaseClient
+        .from("messages")
+        .update({is_read: true})
+        .eq("conversation_id", conv.id)
+        .neq("sender_id", userId);
+
+      if (markReadErr) {
+        console.error("Failed to mark messages as read:", markReadErr);
+      }
+      const badge = li.querySelector(".unread-badge");
+      
+      if (badge) {
+        badge.remove(); 
+      }
+        
+      await loadMessages(conv.id);
+    };
+
     conversationsList.appendChild(li);
   });
 
@@ -394,12 +434,36 @@ filterJobs.addEventListener("change", () => {
   });
 });
 
+function incrementUnreadBadge(conversationId) {
+  const item = document.querySelector(`[data-conv-id="${conversationId}"]`);
+  if (!item) return;
+
+  let badge = item.querySelector(".unread-badge");
+
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "unread-badge";
+    badge.textContent = "1";
+    item.querySelector(".em-conv-title").appendChild(badge);
+  } else {
+    badge.textContent = Number(badge.textContent) + 1;
+  }
+}
+
+
 async function subscribeRealtime() {
   try {
-    supabaseClient.channel('messages')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-        if (payload.new && payload.new.conversation_id === currentConversation?.id) {
+    const userId = await getUserId();
+    supabaseClient.channel('recruiter-messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        if (!payload.new) return;
+
+        const msg = payload.new;
+        if (msg.conversation_id === currentConversation?.id) {
           loadMessages(currentConversation.id);
+        }
+        else if (msg.sender_id !== userId) {
+          incrementUnreadBadge(msg.conversation_id);
         }
       })
       .subscribe();

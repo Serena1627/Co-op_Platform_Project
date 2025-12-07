@@ -272,6 +272,15 @@ body {
   cursor: pointer;
 }
 
+.unread-badge {
+  background: #ff3b30;
+  color: white;
+  padding: 3px 7px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
 @media (max-width: 900px) {
   .em-messages-container {
     grid-template-columns: 1fr;

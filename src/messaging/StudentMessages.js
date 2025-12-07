@@ -146,6 +146,7 @@ async function loadConversations() {
   conversations.forEach(conv => {
     const li = document.createElement("div");
     li.className = "st-conv-item";
+    li.dataset.convId = conv.id;
     li.tabIndex = 0;
 
     const unreadCount = unreadMap[conv.id] || 0;
@@ -181,9 +182,14 @@ async function loadConversations() {
       if (markReadErr) {
         console.error("Failed to mark messages as read:", markReadErr);
       }
+
+      const badge = li.querySelector(".unread-badge");
+      
+      if (badge) {
+        badge.remove(); 
+      }
       
        await loadMessages(conv.id);
-       await loadConversations();
       
       };
     conversationsList.appendChild(li);
@@ -293,18 +299,38 @@ fileInput.addEventListener('change', () => {
 
 sendBtn.addEventListener("click", sendMessage);
 
+function incrementUnreadBadge(conversationId) {
+  const item = document.querySelector(`[data-conv-id="${conversationId}"]`);
+  if (!item) return;
+
+  let badge = item.querySelector(".unread-badge");
+
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "unread-badge";
+    badge.textContent = "1";
+    item.querySelector(".st-conv-title").appendChild(badge);
+  } else {
+    badge.textContent = Number(badge.textContent) + 1;
+  }
+}
+
+
 async function subscribeRealtime() {
+  const userId = await getUserId();
   supabaseClient.channel('messages')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
       if (!payload.new) {
         return;
       }
-      if (payload.new.conversation_id === currentConversation?.id) {
-      loadMessages(currentConversation.id);
-    }
+      const msg = payload.new;
 
-    // Optionally update unread count in the conversation list
-    loadConversations();
+      if (msg.conversation_id === currentConversation?.id) {
+        loadMessages(msg.conversation_id);
+      } else if (msg.sender_id !== userId) {
+        incrementUnreadBadge(msg.conversation_id);
+      }
+    
   })
   .subscribe();
 }
