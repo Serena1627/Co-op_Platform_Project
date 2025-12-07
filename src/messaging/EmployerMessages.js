@@ -26,6 +26,29 @@ async function getUserId() {
 }
 
 async function loadInterviewApplications() {
+  const recruiterId = await getUserId();
+  if (!recruiterId) return;
+
+  const { data: jobs, error: jobsErr} = await supabaseClient
+    .from("job_listings")
+    .select("id, job_title")
+    .eq("recruiter_id", recruiterId); 
+  
+  if (jobsErr) {
+    console.error(jobsErr);
+    studentSelect.innerHTML = '<option value="">Unable to load</option>';
+    return;
+  }  
+
+  const recruiterJobIds = jobs.map(j => j.id);
+  jobsMap = {};
+  jobs.forEach(j => (jobsMap[j.id] = j.job_title));
+
+  if (recruiterJobIds.length === 0) {
+    studentSelect.innerHTML = '<option value="">No interview students available</option>';
+    return;
+  }
+
   const { data: apps, error } = await supabaseClient
     .from("current_applications")
     .select(`
@@ -38,6 +61,7 @@ async function loadInterviewApplications() {
         last_name
       )
     `)
+    .in("job_id", recruiterJobIds)
     .eq("status", "interview")
     .order("created_at", { ascending: false });
 
@@ -48,18 +72,6 @@ async function loadInterviewApplications() {
   }
 
   interviewApps = apps || [];
-  const jobIds = [...new Set(interviewApps.map(a => a.job_id).filter(Boolean))];
-  if (jobIds.length > 0) {
-    const { data: jobsData } = await supabaseClient
-      .from("job_listings")
-      .select("id, job_title")
-      .in("id", jobIds);
-
-    jobsMap = {};
-    if (jobsData) {
-      jobsData.forEach(j => (jobsMap[j.id] = j.job_title));
-    }
-  }
 
   studentSelect.innerHTML = '<option value="">Select a student</option>';
   interviewApps.forEach(app => {
@@ -89,6 +101,7 @@ async function loadInterviewApplications() {
 async function startConversation() {
   const applicationId = studentSelect.value;
   const studentId = studentSelect.selectedOptions[0]?.dataset?.studentId;
+  
   const recruiterId = await getUserId();
   if (!recruiterId) {
     alert("Please sign in to start a conversation.");
@@ -231,7 +244,7 @@ async function loadConversations() {
         <div class="em-conv-meta">
           <div class="em-conv-title">${studentName} ${unreadDeterminator}</div>
           <div class="em-conv-sub">${title}</div>
-          <div class="em-conv-sub">${major}</div>
+          <div class="em-conv-sub">Major: ${major}</div>
         </div>
       </div>
       <div class="em-conv-time">${new Date(conv.created_at).toLocaleString()}</div>`;
@@ -249,7 +262,7 @@ async function loadConversations() {
         console.error("Failed to mark messages as read:", markReadErr);
       }
       const badge = li.querySelector(".unread-badge");
-      
+
       if (badge) {
         badge.remove(); 
       }
