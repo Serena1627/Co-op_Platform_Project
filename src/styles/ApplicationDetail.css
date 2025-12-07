@@ -342,3 +342,160 @@ hr {
         margin-bottom: 0.25rem;
     }
 }
+
+/*Offer Dialogue*/
+.dialog-overlay {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.btn.secondary {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.btn.secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.offer-item:hover {
+    background-color: #f9f9f9;
+    border-color: #2196f3;
+}
+
+.offer-limit-dialog{
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.dialog-overlay{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.offer-limit-dialog,
+.replace-offer-dialog {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.replace-offer-dialog {
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Button Styles */
+.dialog-btn,
+.btn-secondary,
+.btn-danger {
+    text-align: left;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.dialog-btn {
+    background-color: #f5f5f5;
+}
+
+.dialog-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-danger {
+    background-color: #f44336;
+    color: white;
+    padding: 6px 12px;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+}
+
+/* Offer Item Styles */
+.offer-item {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.offer-item strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.offer-item-details {
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Header Styles */
+.dialog-header {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dialog-header-warning {
+    color: #d32f2f;
+}
+
+/* Content Layout */
+.dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.dialog-list {
+    margin: 16px 0;
+}

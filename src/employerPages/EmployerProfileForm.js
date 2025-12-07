@@ -10,9 +10,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const { data: existingProfile, error: profileError } = await supabaseClient
-        .from('companies')
-        .select('id, company_name')
-        .contains('associates', [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
+        .from('recruiters')
+        .select('company_id, company_name')
+        .eq("id", user.id)
         .maybeSingle();
 
     if (profileError) {
@@ -47,14 +47,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         if (confirmed) {
-            const { error } = supabaseClient.rpc('append_to_array', {
-                record_id: possibleCompData.id,
-                column_name: 'associates',
-                new_element: `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
-            });
+            const { error } = await supabaseClient
+                .from("recruiters")
+                .insert({
+                    id: user.id,
+                    company_id: possibleCompData.id,
+                    email: user.email,
+                    first_name: user.user_metadata.firstName,
+                    last_name: user.user_metadata.lastName,
+                });
         
             if (error) {
-                throw new Error(`Couldn't update applications: ${error.message}`);
+                throw new Error(`Couldn't add recruiter: ${error.message}`);
             }
 
             showMessage(`You are now associated with ${possibleCompData.company_name}. Redirecting...`, 'info');
@@ -98,7 +102,7 @@ document.getElementById("employer-form").addEventListener("submit", async functi
 
         const { data: existingCompany, error: checkError } = await supabaseClient
             .from('companies')
-            .select('id, company_name, associates')
+            .select('id, company_name')
             .eq('company_name', companyName)
             .maybeSingle();
 
@@ -107,17 +111,21 @@ document.getElementById("employer-form").addEventListener("submit", async functi
         }
 
         if (existingCompany) {
-            const { updateError } = await supabaseClient.rpc('append_to_array', {
-                record_id: existingCompany.id,
-                column_name: 'associates',
-                new_element: `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
-            });
+            const { error:updateError } = await supabaseClient
+                .from("recruiters")
+                .insert({
+                    id: user.id,
+                    company_id: existingCompany.id,
+                    email: user.email,
+                    first_name: user.user_metadata.firstName,
+                    last_name: user.user_metadata.lastName,
+                });
 
             if (updateError) {
                 throw new Error(`Error joining company: ${updateError.message}`);
             }
 
-            showMessage(`Successfully joined ${existingCompany.company_name}!`, 'success');
+            showMessage(`The Company ${existingCompany.company_name} already exists. Successfully joined ${existingCompany.company_name}!`, 'success');
             
             setTimeout(() => {
                 window.location.assign(`../employerPages/JobPosts.html?company_id=${existingCompany.id}`);
@@ -129,7 +137,6 @@ document.getElementById("employer-form").addEventListener("submit", async functi
                 company_description: companyDescription,
                 company_type: companyType,
                 is_NonProfit: isNonProfit,
-                associates: [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`],
                 primary_contact: user.id,
             };
 
@@ -141,6 +148,20 @@ document.getElementById("employer-form").addEventListener("submit", async functi
 
             if (insertError) {
                 throw new Error(`Error creating company: ${insertError.message}`);
+            }
+
+            const { error:recruiterError } = await supabaseClient
+                .from("recruiters")
+                .insert({
+                    id: user.id,
+                    company_id: newCompany.id,
+                    email: user.email,
+                    first_name: user.user_metadata.firstName,
+                    last_name: user.user_metadata.lastName,
+                });
+            
+            if (insertError) {
+                throw new Error(`Error creating recruiter record: ${recruiterError.message}`);
             }
 
             setTimeout(() => {

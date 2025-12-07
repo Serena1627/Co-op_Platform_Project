@@ -20,7 +20,6 @@ const studentIntlEl = document.getElementById("student-international");
 const studentAdvisorEl = document.getElementById("student-advisor");
 
 const jobTitleEl = document.getElementById("job-title");
-const companyNameEl = document.getElementById("company-name");
 const requiresCitizenshipEl = document.getElementById("requires-citizenship");
 const openPositionsEl = document.getElementById("open-positions");
 const noApplicantsEl = document.getElementById("no-applicants");
@@ -68,9 +67,9 @@ async function init() {
     try {
         showLoading("Loading application...");
         const { data: appData, error: appError } = await supabaseClient
-            .from("current_applications")
+            .from("application_submissions")
             .select("*")
-            .eq("id", applicationId)
+            .eq("application_id", applicationId)
             .maybeSingle();
 
         if (appError) throw appError;
@@ -178,7 +177,6 @@ function renderAll() {
     studentAdvisorEl.innerText = studentRecord.coop_advisor || `${studentRecord.coop_advisor_email || ""}`;
 
     jobTitleEl.innerText = applicationRecord.job_title || (jobRecord ? jobRecord.job_title : "N/A");
-    companyNameEl.innerText = applicationRecord.company_name || "N/A";
     requiresCitizenshipEl.innerText = applicationRecord.requires_citizenship ? "Yes" : "No";
     openPositionsEl.innerText = applicationRecord.no_of_open_positions ?? "N/A";
     noApplicantsEl.innerText = applicationRecord.no_o_applications ?? (jobRecord?.no_applicants ?? "N/A");
@@ -259,8 +257,18 @@ async function updateStatus(newStatus) {
             .eq("id", applicationId)
             .select()
             .maybeSingle();
+
         if (!data || error) throw error || new Error("Failed to update status.");
-        applicationRecord = data;
+
+        const { data:updatedApp, error:getError } = await supabaseClient
+            .from("application_submissions")
+            .select("*")
+            .eq("application_id", applicationId)
+            .maybeSingle();
+
+        if (!updatedApp || getError) throw error || new Error("Something went wrong while getting updated application.");
+
+        applicationRecord = updatedApp;
         setStatusBadge(applicationRecord.status);
         alert(`Status updated to "${newStatus}".`);
 
