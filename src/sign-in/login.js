@@ -74,7 +74,6 @@ async function handleEmployerRedirect(user) {
         .select("company_id")
         .eq("id", user.id)
         .single();
-
     if (error) {
         console.error("Error checking employer profile:", error);
         return;
@@ -83,6 +82,6 @@ async function handleEmployerRedirect(user) {
     if (!data) {
         window.location.assign(`../employerPages/EmployerProfileForm.html`);
     } else {
-        window.location.assign(`../employerPages/JobPosts.html?company_id=${data.id}`);
+        window.location.assign(`../employerPages/JobPosts.html?company_id=${data.company_id}`);
     }
 }
