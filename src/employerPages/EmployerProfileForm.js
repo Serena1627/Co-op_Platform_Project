@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     email: user.email,
                     first_name: user.user_metadata.firstName,
                     last_name: user.user_metadata.lastName,
+                    company_name: possibleCompData.company_name,
                 });
         
             if (error) {
@@ -119,6 +120,7 @@ document.getElementById("employer-form").addEventListener("submit", async functi
                     email: user.email,
                     first_name: user.user_metadata.firstName,
                     last_name: user.user_metadata.lastName,
+                    company_name: existingCompany.company_name,
                 });
 
             if (updateError) {
@@ -158,6 +160,7 @@ document.getElementById("employer-form").addEventListener("submit", async functi
                     email: user.email,
                     first_name: user.user_metadata.firstName,
                     last_name: user.user_metadata.lastName,
+                    company_name: newCompany.name,
                 });
             
             if (insertError) {

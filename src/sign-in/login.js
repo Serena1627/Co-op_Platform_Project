@@ -73,7 +73,7 @@ async function handleEmployerRedirect(user) {
         .from("recruiters")
         .select("company_id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
     if (error) {
         console.error("Error checking employer profile:", error);
         return;

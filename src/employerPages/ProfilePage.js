@@ -34,7 +34,7 @@ async function loadProfile() {
 
     if (error) {
         console.error("Error loading profile:", error);
-        alert("Failed to load profile.");
+        alert(`Failed to load profile. ${user.id}`);
         return;
     }
 
