@@ -248,9 +248,6 @@ function setStatusBadge(status) {
     }
 }
 
-// -------------------------------
-// VALIDATION: OFFER LIMIT
-// -------------------------------
 async function validateOfferNumber() {
     const openPositions = jobRecord?.no_of_open_positions ?? 0;
 
@@ -266,15 +263,13 @@ async function validateOfferNumber() {
         return false;
     }
 
-    // Enough slots → OK
     if (currentOffers < openPositions) return true;
 
-    // No slots → employer must choose action
     const choice = await showOfferLimitDialog(currentOffers, openPositions);
 
     if (choice === "replace") {
         await showReplaceOfferDialog();
-        return false; // stop normal flow; replacement handles everything
+        return false;
     }
 
     if (choice === "rank") {
@@ -282,31 +277,24 @@ async function validateOfferNumber() {
         return false;
     }
 
-    // Cancel or closed dialog
     return false;
 }
 
 
-// -------------------------------
-// VALIDATION: RANKING LIMITS
-// -------------------------------
 async function validateRanking() {
     const openPositions = jobRecord?.no_of_open_positions ?? 0;
 
-    // Count how many offers exist
     const { count: offerCount } = await supabaseClient
         .from("current_applications")
         .select("*", { count: "exact", head: true })
         .eq("job_id", applicationRecord.job_id)
         .eq("status", "offer");
 
-    // Rule: must have filled all offer slots before ranking begins
     if (offerCount < openPositions) {
         alert(`You must give all ${openPositions} offers before ranking candidates.`);
         return false;
     }
 
-    // Count current ranked candidates
     const { count: rankCount } = await supabaseClient
         .from("current_applications")
         .select("*", { count: "exact", head: true })
@@ -322,9 +310,6 @@ async function validateRanking() {
 }
 
 
-// -------------------------------
-// DIALOG WHEN OFFER LIMIT HIT
-// -------------------------------
 function showOfferLimitDialog(currentOffers, maxOffers) {
     return new Promise(resolve => {
         const overlay = document.createElement("div");
@@ -366,9 +351,6 @@ function showOfferLimitDialog(currentOffers, maxOffers) {
 }
 
 
-// -------------------------------
-// REPLACING AN EXISTING OFFER
-// -------------------------------
 async function showReplaceOfferDialog() {
     try {
         const { data: offers, error } = await supabaseClient
@@ -426,13 +408,11 @@ async function showReplaceOfferDialog() {
 
                     showLoading("Updating offers...");
 
-                    // Move old student to ranked
                     await supabaseClient
                         .from("current_applications")
                         .update({ status: "ranked" })
                         .eq("id", offerId);
 
-                    // Give this student an offer
                     await supabaseClient
                         .from("current_applications")
                         .update({ status: "offer" })
@@ -462,17 +442,14 @@ async function showReplaceOfferDialog() {
 }
 
 
-// -------------------------------
-// MAIN UPDATE FUNCTION (REWRITTEN)
-// -------------------------------
 async function updateStatus(newStatus) {
     try {
         showLoading("Updating...");
 
-        // SPECIAL VALIDATIONS
         if (newStatus === "offer") {
             const canOffer = await validateOfferNumber();
             if (!canOffer) return hideLoading();
+            await setOfferDecision("offer sent");
         }
 
         if (newStatus === "ranked") {
@@ -480,7 +457,10 @@ async function updateStatus(newStatus) {
             if (!canRank) return hideLoading();
         }
 
-        // PERFORM UPDATE
+        if (newStatus === "reject"){
+            await setOfferDecision("Not offered");
+        }
+
         const { data, error } = await supabaseClient
             .from("current_applications")
             .update({ status: newStatus })
@@ -499,6 +479,18 @@ async function updateStatus(newStatus) {
         alert("Could not update status.");
     } finally {
         hideLoading();
+    }
+}
+
+async function setOfferDecision(decision){
+    const { error } = await supabaseClient
+        .from("current_applications")
+        .update({ offer_decision: decision })
+        .eq("id", applicationId)
+        .maybeSingle();
+    if (error){
+        console.error("Offer Decision Error", error);
+        throw new Error(`Could not set offer decision. ${error.message}`);
     }
 }
 
