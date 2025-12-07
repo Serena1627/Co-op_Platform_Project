@@ -74,9 +74,12 @@ async function saveJobPosting(event) {
         return;
     }
 
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
     const formData = {
         job_title: document.getElementById('job_title').value,
         location: document.getElementById('location').value,
+        recruiter_id: user.id,
         job_description: document.getElementById('job_description').value || null,
         job_qualifications: document.getElementById('job_qualifications').value || null,
         desired_majors: document.getElementById('desired_majors').value ? document.getElementById('desired_majors').value.split(',').map(s => s.trim()) : null,
@@ -258,7 +261,7 @@ window.hideForm = hideForm;
 window.saveJobPosting = saveJobPosting;
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const companyId = getCompanyIdFromURL();  
+    const companyId = getCompanyIdFromURL();
 
     if (!companyId) {
         alert('No company associated. Please complete your company profile.');
