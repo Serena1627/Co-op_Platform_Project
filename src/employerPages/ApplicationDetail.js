@@ -40,6 +40,7 @@ const btnInterview = document.getElementById("mark-interview");
 const btnOffer = document.getElementById("mark-offer");
 const btnRanked = document.getElementById("mark-ranked");
 const btnReject = document.getElementById("mark-rejected");
+const offerRankingNote = document.getElementById("offer-ranking-note");
 
 const btnMessage = document.getElementById("message-student");
 const messageNote = document.getElementById("message-availability-note");
@@ -166,6 +167,7 @@ async function init() {
 
 function renderAll() {
     applyCoopCalendarGating();
+    applyStatusGating();
     studentNameEl.innerText = `${studentRecord.first_name || ""} ${studentRecord.last_name || ""}`;
     studentAvatarEl.innerText = `${(studentRecord.first_name?.charAt(0) || "")}${(studentRecord.last_name?.charAt(0) || "")}`;
     studentMajorEl.innerText = studentRecord.major || "N/A";
@@ -232,6 +234,13 @@ function applyCoopCalendarGating(){
     }else if (currentDate <= ranking_period_end){
         btnInReview.remove();
         btnInterview.remove();
+    }
+}
+
+function applyStatusGating(){
+    if (applicationRecord.status === "ranked" || applicationRecord.status === "offer"){
+        btnOffer.disabled = true;
+        offerRankingNote.innerText = "An offer has already been sent out for this student";
     }
 }
 
@@ -489,10 +498,12 @@ async function updateOpenPositions(){
     const { data: updatedData, error: updatedError} = await supabaseClient
         .from("job_listings")
         .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
-        .eq("id", job_id)
+        .eq("id", jobRecord.id)
         .select()
         .maybeSingle();
     if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
+    jobRecord.no_of_open_positions = jobRecord.no_of_open_positions - 1; 
+    openPositionsEl.innerText = jobRecord.no_of_open_positions;
 }
 
 
