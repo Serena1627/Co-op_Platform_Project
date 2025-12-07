@@ -9,14 +9,114 @@ const chatEmpty = document.getElementById("chat-empty");
 const chatPanel = document.getElementById("chat-panel");
 const chatEmployerName = document.getElementById("chat-employer-name");
 const chatJobTitle = document.getElementById("chat-job-title");
+const recruiterSelect = document.getElementById("recruiter-select");
+const startConvBtn = document.getElementById("start-conversation-btn");
 
 let currentConversation = null;
 let conversations = [];
+let recruitersMap = [];
 
 async function getUserId() {
   const { data } = await supabaseClient.auth.getUser();
   return data?.user?.id ?? null;
 }
+
+async function loadRecruitersAndJobs() {
+  const studentId = await getUserId();
+  if (!studentId) return;
+
+  const { data: apps, error: appsErr } = await supabaseClient
+    .from("current_applications")
+    .select("*")
+    .eq("student_id", studentId)
+    .eq("status", "interview");
+
+  if (appsErr) { console.error(appsErr); return; }
+
+  const jobIds = [...new Set(apps.map(a => a.job_id))];
+
+  const { data: jobs, error: jobsErr } = await supabaseClient
+    .from("job_listings")
+    .select("*")
+    .in("id", jobIds);
+
+  if (jobsErr) { console.error(jobsErr); return; }
+
+  const recruiterIds = [...new Set(jobs.map(j => j.recruiter_id))];
+
+  const { data: recruiters, error: recErr } = await supabaseClient
+    .from("recruiters")
+    .select("*")
+    .in("id", recruiterIds);
+
+  if (recErr) { console.error(recErr); return; }
+
+  const jobsMap = {};
+  jobs.forEach(j => jobsMap[j.id] = j);
+
+  const recruitersMap = {};
+  recruiters.forEach(r => recruitersMap[r.id] = r);
+
+  recruiterSelect.innerHTML = '<option value="">Select a recruiter / job</option>';
+  apps.forEach(app => {
+    const job = jobsMap[app.job_id];
+    const recruiter = job ? recruitersMap[job.recruiter_id] : null;
+
+    const recruiterName = recruiter ? `${recruiter.first_name} ${recruiter.last_name}` : 'Unknown';
+    const companyName = recruiter ? recruiter.company_name : '';
+    const jobTitle = job ? job.job_title : 'Job';
+
+    const opt = document.createElement("option");
+    opt.value = app.id;
+    opt.dataset.jobId = app.job_id;
+    opt.dataset.recruiterId = recruiter?.id || '';
+    opt.textContent = `${companyName} — ${recruiterName} — ${jobTitle}`;
+    recruiterSelect.appendChild(opt);
+  });
+}
+
+
+async function startConversation() {
+  const appId = recruiterSelect.value;
+  const recruiterId = recruiterSelect.selectedOptions[0]?.dataset?.recruiterId;
+  const studentId = await getUserId();
+  if (!studentId || !appId || !recruiterId) {
+    alert("Please select a recruiter/job first.");
+    return;
+  }
+
+  const { data: existing } = await supabaseClient
+    .from("conversations")
+    .select("*")
+    .eq("application_id", appId)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    currentConversation = existing[0];
+  } else {
+    const payload = {
+      application_id: appId,
+      student_id: studentId,
+      recruiter_id: recruiterId,
+      created_at: new Date().toISOString()
+    };
+    const { data: newConv, error: insertErr } = await supabaseClient
+      .from("conversations")
+      .insert([payload])
+      .select()
+      .limit(1);
+
+    if (insertErr) {
+      console.error(insertErr);
+      return;
+    }
+    currentConversation = (newConv && newConv[0]) || null;
+  }
+
+  if (currentConversation) loadMessages(currentConversation.id);
+}
+
+startConvBtn.addEventListener("click", startConversation);
 
 async function loadConversations() {
   const userId = await getUserId();
@@ -164,6 +264,7 @@ async function subscribeRealtime() {
 }
 
 async function init() {
+  await loadRecruitersAndJobs();
   await loadConversations();
   subscribeRealtime();
 }
