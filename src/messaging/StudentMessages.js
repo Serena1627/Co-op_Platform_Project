@@ -42,13 +42,13 @@ async function loadRecruitersAndJobs() {
 
   if (jobsErr) { console.error(jobsErr); return; }
 
-  const recruiterIds = [...new Set(jobs.map(j => j.recruiter_id))];
-
+  const recruiterIds = [...new Set(jobs.map(j => j.recruiter_id).filter(id => id != null))];
+  
   const { data: recruiters, error: recErr } = await supabaseClient
     .from("recruiters")
     .select("*")
     .in("id", recruiterIds);
-
+  
   if (recErr) { console.error(recErr); return; }
 
   const jobsMap = {};
