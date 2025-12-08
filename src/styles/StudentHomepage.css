@@ -232,7 +232,7 @@ body {
 
 @media (max-width: 768px) {
     body {
-        padding-bottom: 140px; /* More space for wrapped footer */
+        padding-bottom: 140px;
     }
 
     .page-wrapper {
