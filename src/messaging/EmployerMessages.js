@@ -39,6 +39,7 @@ async function loadInterviewApplications() {
     studentSelect.innerHTML = '<option value="">Unable to load</option>';
     return;
   }  
+
   const recruiterJobIds = jobs.map(j => j.id);
   jobsMap = {};
   jobs.forEach(j => (jobsMap[j.id] = j.job_title));

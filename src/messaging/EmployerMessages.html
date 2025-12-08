@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Employer Messaging</title>
+  <link rel="stylesheet" href="../styles/EmployerMessages.css" />
+  <link rel="stylesheet" href="../styles/EmployerNavBar.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+  <script>
+    fetch('../components/EmployerNavbar.html')
+      .then(response => response.text())
+      .then(data => { document.getElementById('navbar-container').innerHTML = data; })
+      .catch(err => console.error('Navbar load error:', err));
+  </script>
+  <div style="height:60px;"></div> 
+  <div class="em-messages-container">
+    <aside class="em-sidebar">
+      <div class="em-sidebar-header">
+        <h2>Employer Messages</h2>
+        <div class="em-controls">
+          <select id="filter-jobs">
+            <option value="">All Jobs</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="em-start">
+        <label for="student-select">Students with Interview Requests</label>
+        <select id="student-select">
+          <option value="">Loading...</option>
+        </select>
+        <button id="start-conversation-btn" class="em-btn primary">Start Conversation</button>
+      </div>
+
+      <div id="conversations-list" class="em-conversations"></div>
+      <div id="conversations-loading" class="loading" style="display:none;">Loading conversations…</div>
+
+    </aside>
+
+    <main class="em-chat-area">
+      <div id="chat-empty" class="em-empty">
+        <i class="fa fa-comments em-empty-icon"></i>
+        <h3>Select a conversation</h3>
+        <p>Start a conversation from the left panel or select an existing one to view messages.</p>
+      </div>
+
+      <div id="chat-panel" class="em-chat-panel" style="display:none;">
+        <div class="em-chat-header">
+          <div>
+            <div id="chat-student-name" class="em-chat-title">Student</div>
+            <div id="chat-job-title" class="em-chat-subtitle">Job</div>
+          </div>
+          <div id="chat-meta" class="em-chat-meta"></div>
+        </div>
+
+        <div id="messages-container" class="em-messages"></div>
+      <div id="messages-loading" class="loading" style="display:none;">Loading messages…</div>
+
+        <div class="em-input-row">
+          <label class="em-attach">
+            <input id="file-input" type="file" style="display:none" />
+            <i class="fa fa-paperclip"></i>
+          </label>
+          <input id="message-input" type="text" placeholder="Type a message..." />
+          <button id="send-btn" class="em-btn">Send</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="EmployerMessages.js"></script>
+</body>
+</html>
