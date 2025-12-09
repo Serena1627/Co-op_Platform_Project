@@ -2,8 +2,8 @@
   --bg: #f6f8fa;
   --card: #fff;
   --muted: #6b7280;
-  --primary: #2563eb;
-  --accent: #4f46e5;
+  --primary:  #003d82;
+  --accent: #6fa3d8;
 }
 
 * {
@@ -225,7 +225,7 @@ body {
 }
 
 .em-msg-right {
-  background: linear-gradient(90deg, var(--primary), #4f46e5);
+  background: linear-gradient(90deg, var(--primary), #6fa3d8);
   color: white;
   align-self: flex-end;
 }

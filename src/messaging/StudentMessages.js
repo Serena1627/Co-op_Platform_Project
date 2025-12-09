@@ -4,7 +4,7 @@ const conversationsList = document.getElementById("conversations-list");
 const messagesContainer = document.getElementById("messages-container");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
-const fileInput = document.getElementById("file-input");
+//const fileInput = document.getElementById("file-input");
 const chatEmpty = document.getElementById("chat-empty");
 const chatPanel = document.getElementById("chat-panel");
 const chatEmployerName = document.getElementById("chat-employer-name");
@@ -75,10 +75,16 @@ async function loadRecruitersAndJobs() {
   });
 }
 
-
-async function startConversation() {
-  const appId = recruiterSelect.value;
-  const recruiterId = recruiterSelect.selectedOptions[0]?.dataset?.recruiterId;
+async function startConversation(applicationId = null, recruiter = null) {
+  let appId, recruiterId;
+  if (!applicationId || !recruiter) {
+    appId = recruiterSelect.value;
+    recruiterId = recruiterSelect.selectedOptions[0]?.dataset?.recruiterId;
+  } else {
+    appId = applicationId;
+    recruiterId = recruiter;
+  }
+  
   const studentId = await getUserId();
   if (!studentId || !appId || !recruiterId) {
     alert("Please select a recruiter/job first.");
@@ -263,6 +269,7 @@ async function sendMessage() {
   if (!currentConversation) { alert("Select a conversation first."); return; }
 
   const text = messageInput.value.trim();
+  /*
   if (!text && fileInput.files.length === 0) return;
 
   let attachmentUrl = null;
@@ -274,29 +281,31 @@ async function sendMessage() {
     const { publicUrl } = supabaseClient.storage.from("chat_attachments").getPublicUrl(data.path);
     attachmentUrl = publicUrl;
   }
+  */
 
   const { error } = await supabaseClient.from("messages").insert([{
     conversation_id: currentConversation.id,
     sender_id: await getUserId(),
     message_text: text,
-    attachment_url: attachmentUrl,
+    //attachment_url: attachmentUrl,
     created_at: new Date().toISOString()
   }]);
 
   if (error) { console.error(error); return; }
 
   messageInput.value = "";
-  fileInput.value = "";
-  document.getElementById('file-name').textContent = '';
+  //fileInput.value = "";
+  //document.getElementById('file-name').textContent = '';
   loadMessages(currentConversation.id);
 }
 
+/*
 fileInput.addEventListener('change', () => {
   const fileNameEl = document.getElementById('file-name');
   if (fileInput.files.length > 0) fileNameEl.textContent = fileInput.files[0].name;
   else fileNameEl.textContent = '';
 });
-
+*/
 sendBtn.addEventListener("click", sendMessage);
 
 function incrementUnreadBadge(conversationId) {
@@ -339,6 +348,21 @@ async function init() {
   await loadRecruitersAndJobs();
   await loadConversations();
   subscribeRealtime();
+  const urlParams = new URLSearchParams(window.location.search);
+  const recruiterId = urlParams.get("recruiterId");
+  const applicationId = urlParams.get("applicationId");
+
+  if (recruiterId && applicationId) {
+    const conv = conversations.find(c => c.application_id.toString() === applicationId);
+    if (conv) {
+      currentConversation = conv;
+      highlightConversation(conv.id);
+      await loadMessages(conv.id);
+    } else {
+      recruiterSelect.value = applicationId;
+      await startConversation(applicationId, recruiterId);
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

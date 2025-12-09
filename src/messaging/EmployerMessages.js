@@ -14,7 +14,6 @@ const chatJobTitle = document.getElementById("chat-job-title");
 const chatMeta = document.getElementById("chat-meta");
 const filterJobs = document.getElementById("filter-jobs");
 
-
 let currentConversation = null;
 let conversations = [];
 let interviewApps = [];
@@ -31,7 +30,7 @@ async function loadInterviewApplications() {
 
   const { data: jobs, error: jobsErr} = await supabaseClient
     .from("job_listings")
-    .select("id, job_title")
+    .select("id, job_title, company_id")
     .eq("recruiter_id", recruiterId); 
   
   if (jobsErr) {
@@ -39,6 +38,11 @@ async function loadInterviewApplications() {
     studentSelect.innerHTML = '<option value="">Unable to load</option>';
     return;
   }  
+
+  const mainPageLink = document.getElementById('main-page-link');
+  if (mainPageLink) {
+    mainPageLink.href = `JobPosts.html?company_id=${jobs.company_id}`;
+  }
 
   const recruiterJobIds = jobs.map(j => j.id);
   jobsMap = {};
@@ -158,7 +162,6 @@ async function loadConversations() {
   }
 
   const convLoading = document.getElementById("conversations-loading");
-  //convLoading.style.display = "block";
   conversationsList.style.opacity = "0.3";
 
   const recruiterId = await getUserId();

@@ -3,27 +3,27 @@
 =========================== */
 
 body {
-    font-family: "Inter", sans-serif;
-    background: #f6f8fa;
-    margin: 0;
-    padding: 0;
-    color: #222;
+  font-family: "Inter", sans-serif;
+  background: #f6f8fa;
+  margin: 0;
+  padding: 0;
+  color: #222;
 }
 
 .container.application-detail-container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 20px;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
 }
 
 h1 {
-    font-size: 32px;
-    margin-bottom: 4px;
+  font-size: 32px;
+  margin-bottom: 4px;
 }
 
 .subtitle {
-    color: #666;
-    margin-bottom: 24px;
+  color: #666;
+  margin-bottom: 24px;
 }
 
 /* ===========================
@@ -31,15 +31,15 @@ h1 {
 =========================== */
 
 .detail-grid {
-    display: grid;
-    grid-template-columns: 350px 1fr 350px;
-    grid-gap: 24px;
+  display: grid;
+  grid-template-columns: 350px 1fr 350px;
+  grid-gap: 24px;
 }
 
 @media (max-width: 992px) {
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===========================
@@ -47,42 +47,42 @@ h1 {
 =========================== */
 
 .card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
 }
 
 .card-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #334155;
-    color: white;
-    font-size: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #334155;
+  color: white;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 
 .student-info h2 {
-    margin: 0;
-    font-size: 22px;
+  margin: 0;
+  font-size: 22px;
 }
 
 .profile-details div,
 .card-section div {
-    margin: 8px 0;
-    font-size: 15px;
+  margin: 8px 0;
+  font-size: 15px;
 }
 
 /* ===========================
@@ -90,63 +90,81 @@ h1 {
 =========================== */
 
 .status-badge {
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: capitalize;
-    display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
 }
 
-.status-new { background: #dbeafe; color: #1e3a8a; }
-.status-reviewed { background: #fef9c3; color: #854d0e; }
-.status-interview { background: #cffafe; color: #155e75; }
-.status-offer { background: #dcfce7; color: #166534; }
-.status-ranked { background: #ede9fe; color: #5b21b6; }
-.status-rejected { background: #fee2e2; color: #991b1b; }
+.status-new {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+.status-reviewed {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.status-interview {
+  background: #cffafe;
+  color: #155e75;
+}
+.status-offer {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-ranked {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
 
 /* ===========================
    Buttons
 =========================== */
 
 .btn-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .btn {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 10px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.2s;
+  background: #0b3e75;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .btn:hover {
-    background: #1d4ed8;
+  background: #1d4ed8;
 }
 
 .btn.danger {
-    background: #dc2626;
+  background: #b91c1c;
 }
 
 .btn.danger:hover {
-    background: #b91c1c;
+  background: #dc2626;
 }
 
 .btn[disabled] {
-    background: #cbd5e1;
-    cursor: not-allowed;
+  background: #cbd5e1;
+  cursor: not-allowed;
 }
 
 small.muted {
-    display: block;
-    color: #6b7280;
-    margin-top: 6px;
+  display: block;
+  color: #6b7280;
+  margin-top: 6px;
 }
 
 /* ===========================
@@ -154,12 +172,12 @@ small.muted {
 =========================== */
 
 .card-section {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 #resume-note {
-    color: #6b7280;
-    font-style: italic;
+  color: #6b7280;
+  font-style: italic;
 }
 
 /* ===========================
@@ -168,11 +186,11 @@ small.muted {
 
 .qualifications-block,
 .description-block {
-    margin: 8px 0;
-    background: #f1f5f9;
-    padding: 12px;
-    border-radius: 10px;
-    white-space: pre-line;
+  margin: 8px 0;
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 10px;
+  white-space: pre-line;
 }
 
 /* ===========================
@@ -180,14 +198,538 @@ small.muted {
 =========================== */
 
 .loading {
-    font-size: 18px;
-    color: #555;
+  font-size: 18px;
+  color: #555;
 }
 
 .error {
-    background: #fee2e2;
-    padding: 12px 16px;
-    border-radius: 10px;
-    color: #991b1b;
+  background: #fee2e2;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #991b1b;
+  margin-bottom: 20px;
+}
+
+/* ===========================
+   Dialog Overlays (Base Styles)
+=========================== */
+
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.offer-limit-dialog,
+.replace-offer-dialog,
+.ranking-dialog {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: dialogSlideIn 0.3s ease-out;
+    border: 1px solid #e5e7eb;
+}
+
+@keyframes dialogSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===========================
+   Offer Limit Dialog
+=========================== */
+
+.offer-limit-dialog h3,
+.replace-offer-dialog h3,
+.ranking-dialog h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: #002855;
+    font-weight: 600;
+}
+
+.offer-limit-dialog p {
+    color: #666;
+    margin-bottom: 24px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.offer-limit-dialog strong {
+    color: #002855;
+    font-weight: 700;
+}
+
+.dialog-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.dialog-actions button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    width: 100%;
+    font-family: inherit;
+}
+
+.dialog-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 40, 85, 0.2);
+}
+
+.dialog-actions button:active {
+    transform: translateY(0);
+}
+
+#replace-offer {
+    background: #0b3e75;
+    color: white;
+}
+
+#replace-offer:hover {
+    background: #004d9f;
+    box-shadow: 0 4px 15px rgba(0, 40, 85, 0.3);
+}
+
+#rank-student {
+    background: #003d82;
+    color: white;
+}
+
+#rank-student:hover {
+    background: #004d9f;
+    box-shadow: 0 4px 15px rgba(0, 40, 85, 0.3);
+}
+
+#cancel,
+#cancel-replace {
+    background: #f1f5f9;
+    color: #666;
+    border: 1px solid #e5e7eb;
+}
+
+#cancel:hover,
+#cancel-replace:hover {
+    background: #e2e8f0;
+    color: #002855;
+}
+
+/* ===========================
+   Replace Offer Dialog
+=========================== */
+
+.replace-offer-dialog {
+    max-width: 600px;
+}
+
+.replace-offer-dialog h3 {
     margin-bottom: 20px;
+}
+
+.offer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #f6f8fa;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.offer-item:hover {
+    background: #f0f7ff;
+    border-color: #cbd5e1;
+    transform: translateX(2px);
+}
+
+.offer-item:last-child {
+    margin-bottom: 24px;
+}
+
+.offer-item span {
+    font-size: 16px;
+    font-weight: 500;
+    color: #002855;
+}
+
+.replace-btn {
+    padding: 8px 16px;
+    background: #b91c1c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.replace-btn:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.2);
+}
+
+#cancel-replace {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: #f6f8fa;
+    color: #666;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#cancel-replace:hover {
+    background: #e2e8f0;
+    color: #002855;
+}
+
+/* ===========================
+   Drag & Drop Ranking Dialog
+=========================== */
+
+.ranking-dialog {
+    max-width: 550px;
+}
+
+.ranking-dialog p {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ranking-list {
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: #f6f8fa;
+    min-height: 200px;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: move;
+    transition: all 0.2s;
+    user-select: none;
+    position: relative;
+}
+
+.ranking-item:last-child {
+    border-bottom: none;
+}
+
+.ranking-item.dragging {
+    background: #f0f7ff;
+    box-shadow: 0 4px 12px rgba(0, 40, 85, 0.15);
+    opacity: 0.9;
+    z-index: 100;
+    border-radius: 6px;
+    border: 1px solid #6fa3d8;
+}
+
+.ranking-item.over {
+    border-top: 2px solid #0b3e75;
+}
+
+.ranking-item .rank-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #002855 0%, #003d82 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    margin-right: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 40, 85, 0.2);
+}
+
+.ranking-item .drag-handle {
+    margin-right: 16px;
+    color: #94a3b8;
+    font-size: 16px;
+    cursor: move;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.ranking-item:hover .drag-handle {
+    color: #003d82;
+    background: #f0f7ff;
+}
+
+.ranking-item .student-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ranking-item .student-name {
+    font-weight: 600;
+    color: #002855;
+    font-size: 16px;
+    margin-bottom: 4px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ranking-item .current-rank {
+    font-size: 12px;
+    color: #666;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 12px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.ranking-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+    font-style: italic;
+    background: #f6f8fa;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 15px;
+    border: 2px dashed #cbd5e1;
+}
+
+.ranking-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.ranking-actions button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 15px;
+    min-width: 120px;
+    font-family: inherit;
+}
+
+.btn-submit {
+    background: #0b3e75;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 40, 85, 0.2);
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: #004d9f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 40, 85, 0.3);
+}
+
+.btn-submit:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-cancel {
+    background: #f6f8fa;
+    color: #666;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-cancel:hover {
+    background: #e2e8f0;
+    color: #002855;
+}
+
+/* ===========================
+   Dialog Animations & Responsive
+=========================== */
+
+@media (max-width: 768px) {
+    .offer-limit-dialog,
+    .replace-offer-dialog,
+    .ranking-dialog {
+        padding: 20px;
+        width: 95%;
+        max-height: 85vh;
+        border-radius: 10px;
+    }
+    
+    .dialog-actions {
+        gap: 10px;
+    }
+    
+    .dialog-actions button,
+    .ranking-actions button {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .ranking-actions {
+        flex-direction: column;
+    }
+    
+    .ranking-actions button {
+        width: 100%;
+    }
+    
+    .ranking-item {
+        padding: 14px;
+    }
+    
+    .ranking-item .rank-number {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+        margin-right: 12px;
+    }
+    
+    .ranking-item .student-name {
+        font-size: 15px;
+    }
+    
+    .offer-item {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .offer-item span {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .replace-btn {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+/* ===========================
+   Dialog Focus States
+=========================== */
+
+.offer-limit-dialog:focus,
+.replace-offer-dialog:focus,
+.ranking-dialog:focus {
+    outline: 2px solid #0b3e75;
+    outline-offset: 2px;
+}
+
+.ranking-item:focus {
+    outline: 2px solid #0b3e75;
+    outline-offset: -2px;
+    border-radius: 6px;
+}
+
+/* ===========================
+   Dialog Scrollbar Styling
+=========================== */
+
+.offer-limit-dialog::-webkit-scrollbar,
+.replace-offer-dialog::-webkit-scrollbar,
+.ranking-dialog::-webkit-scrollbar {
+    width: 6px;
+}
+
+.offer-limit-dialog::-webkit-scrollbar-track,
+.replace-offer-dialog::-webkit-scrollbar-track,
+.ranking-dialog::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.offer-limit-dialog::-webkit-scrollbar-thumb,
+.replace-offer-dialog::-webkit-scrollbar-thumb,
+.ranking-dialog::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.offer-limit-dialog::-webkit-scrollbar-thumb:hover,
+.replace-offer-dialog::-webkit-scrollbar-thumb:hover,
+.ranking-dialog::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ===========================
+   Loading State for Dialogs
+=========================== */
+
+.dialog-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #003d82;
+    font-weight: 500;
+}
+
+.dialog-loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid #0b3e75;
+    border-radius: 50%;
+    animation: dialogSpin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes dialogSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
