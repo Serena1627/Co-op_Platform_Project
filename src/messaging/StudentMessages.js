@@ -4,7 +4,7 @@ const conversationsList = document.getElementById("conversations-list");
 const messagesContainer = document.getElementById("messages-container");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
-const fileInput = document.getElementById("file-input");
+//const fileInput = document.getElementById("file-input");
 const chatEmpty = document.getElementById("chat-empty");
 const chatPanel = document.getElementById("chat-panel");
 const chatEmployerName = document.getElementById("chat-employer-name");
@@ -269,6 +269,7 @@ async function sendMessage() {
   if (!currentConversation) { alert("Select a conversation first."); return; }
 
   const text = messageInput.value.trim();
+  /*
   if (!text && fileInput.files.length === 0) return;
 
   let attachmentUrl = null;
@@ -280,29 +281,31 @@ async function sendMessage() {
     const { publicUrl } = supabaseClient.storage.from("chat_attachments").getPublicUrl(data.path);
     attachmentUrl = publicUrl;
   }
+  */
 
   const { error } = await supabaseClient.from("messages").insert([{
     conversation_id: currentConversation.id,
     sender_id: await getUserId(),
     message_text: text,
-    attachment_url: attachmentUrl,
+    //attachment_url: attachmentUrl,
     created_at: new Date().toISOString()
   }]);
 
   if (error) { console.error(error); return; }
 
   messageInput.value = "";
-  fileInput.value = "";
-  document.getElementById('file-name').textContent = '';
+  //fileInput.value = "";
+  //document.getElementById('file-name').textContent = '';
   loadMessages(currentConversation.id);
 }
 
+/*
 fileInput.addEventListener('change', () => {
   const fileNameEl = document.getElementById('file-name');
   if (fileInput.files.length > 0) fileNameEl.textContent = fileInput.files[0].name;
   else fileNameEl.textContent = '';
 });
-
+*/
 sendBtn.addEventListener("click", sendMessage);
 
 function incrementUnreadBadge(conversationId) {

@@ -116,7 +116,7 @@ h1 {
 }
 
 .btn {
-    background: #2563eb;
+    background: #0b3e75;
     color: white;
     border: none;
     padding: 10px 16px;
@@ -131,11 +131,11 @@ h1 {
 }
 
 .btn.danger {
-    background: #dc2626;
+    background: #b91c1c;
 }
 
 .btn.danger:hover {
-    background: #b91c1c;
+    background: #dc2626;
 }
 
 .btn[disabled] {

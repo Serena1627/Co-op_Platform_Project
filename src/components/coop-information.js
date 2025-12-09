@@ -1,5 +1,7 @@
 import { supabaseClient } from "../supabaseClient.js";
 
+let centralDate = null;
+
 export async function getCurrentCoopInformation(coopCycle, today) {
     const coopCalendar = await parseCalendar(coopCycle);
     const rounds = Object.entries(coopCalendar);
@@ -117,4 +119,17 @@ async function parseCalendar(coop_cycle) {
 function isBetween(date, start, end) {
     if (!start || !end) return false;
     return date >= start && date <= end;
+}
+
+export function setDate(date= null){
+    if (date === null){
+        centralDate = new Date();
+        return;
+    }
+    centralDate = new Date(date);
+}
+
+export function getDate(){
+    if (!centralDate) return new Date();
+    return centralDate;
 }

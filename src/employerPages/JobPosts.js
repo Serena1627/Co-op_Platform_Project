@@ -1,9 +1,9 @@
 import { supabaseClient } from "../supabaseClient.js";
-import { getCurrentCoopInformation } from "../components/coop-information.js";
+import { getCurrentCoopInformation, getDate } from "../components/coop-information.js";
 
 let currentEditingId = null;
 let table = null;
-let currentDate = new Date("2026-01-04");
+let currentDate = getDate();
 
 function getCompanyIdFromURL() {
     const urlParams = new URLSearchParams(window.location.search);

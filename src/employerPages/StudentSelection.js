@@ -33,8 +33,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const mainPageLink = document.getElementById('main-page-link');
     if (mainPageLink) {
         mainPageLink.href = `JobPosts.html?company_id=${companyData.id}`;
-    }else{
-        console.log("here");
     }
     const title = document.querySelector(".container h1");
     const jobFilter = document.querySelector(".filters select:first-of-type");
