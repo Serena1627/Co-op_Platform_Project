@@ -627,3 +627,59 @@
 .withdraw-btn {
     margin-left: auto;
 }
+
+.ranking-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ranking-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: move;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ranking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.ranking-card.dragging {
+    opacity: 0.5;
+}
+
+.ranking-handle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    min-width: 60px;
+}
+
+.rank-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2196F3;
+}
+
+.ranking-handle i {
+    color: #999;
+    font-size: 18px;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.ranking-save-section {
+    margin-top: 30px;
+    text-align: center;
+    padding: 20px;
+    border-top: 2px solid #e0e0e0;
+}

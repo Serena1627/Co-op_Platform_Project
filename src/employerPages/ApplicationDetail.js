@@ -509,8 +509,8 @@ async function setOfferDecision(decision) {
         if (decision === "ranked") {
             const { data: rankedRow, error: rankedError } = await supabaseClient
                 .from("current_applications")
-                .select("rank_position")
-                .order("rank_position", { ascending: false })
+                .select("employer_rank_position")
+                .order("employer_rank_position", { ascending: false })
                 .limit(1)
                 .single();
 
@@ -519,11 +519,11 @@ async function setOfferDecision(decision) {
                 throw new Error(`Could not get previous rank position. ${rankedError.message}`);
             }
 
-            const lastRank = rankedRow?.rank_position ?? 0;
+            const lastRank = rankedRow?.employer_rank_position ?? 0;
 
             const { error: updateRankError } = await supabaseClient
                 .from("current_applications")
-                .update({ rank_position: lastRank + 1 })
+                .update({ employer_rank_position: lastRank + 1 })
                 .eq("id", applicationId)
                 .maybeSingle();
 
