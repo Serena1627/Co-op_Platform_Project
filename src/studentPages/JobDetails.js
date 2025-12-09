@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // -----------------------------
     // RECRUITER
     // -----------------------------
+    const applyBtn = document.getElementById("apply-btn");
     if (source === "applications") {
         const { data: userData } = await supabaseClient.auth.getUser();
         const user = userData?.user;
@@ -197,13 +198,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                     });
                 }
             }
+
+            applyBtn.style.display = applicationData.status != "pending" ? "none" : "inline-block";
         } else {
             console.log("No user logged in.");
         }
     }
-
-    const applyBtn = document.getElementById("apply-btn");
-    applyBtn.style.display = source === "applications" ? "none" : "inline-block";
     
     if (!applyBtn) {
         console.error("Apply button not found in DOM.");
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 alert("Application submitted successfully!");
-                window.location.href = "./careerProfile/CurrentApps.html";
+                window.location.href = "../careerProfile/CurrentApps.html";
 
             } catch (err) {
                 console.error("Unexpected error:", err);
