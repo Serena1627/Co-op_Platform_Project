@@ -7,38 +7,131 @@ const userStatusEl = document.getElementById("user-status");
 const emptyState = document.getElementById("empty-state");
 const recordTpl = document.getElementById("record-template");
 
-let warnBeforeExit = false;
-
-window.addEventListener("beforeunload", function (e) {
-  if (!warnBeforeExit) return;
-  e.preventDefault();
-  return "";
-});
-
-
 const reviewQuestions = [
-  { name: "professional_development", label: "This co-op significantly enhanced my technical and professional skills" },
-  { name: "mentorship_support", label: "I received helpful mentorship and support" },
-  { name: "work_life_balance", label: "The co-op provided a healthy work-life balance" },
-  { name: "workplace_culture", label: "The workplace culture was positive and inclusive" },
-  { name: "learning_opportunities", label: "I had opportunities to learn and grow" },
-  { name: "feedback_communication", label: "Feedback and communication were clear and constructive" },
-  { name: "career_relevance", label: "The work was relevant to my career goals" },
+  {
+    name: "professional_development",
+    label:
+      "This co-op significantly enhanced my technical and professional skills",
+  },
+  {
+    name: "mentorship_support",
+    label: "I received helpful mentorship and support",
+  },
+  {
+    name: "work_life_balance",
+    label: "The co-op provided a healthy work-life balance",
+  },
+  {
+    name: "workplace_culture",
+    label: "The workplace culture was positive and inclusive",
+  },
+  {
+    name: "learning_opportunities",
+    label: "I had opportunities to learn and grow",
+  },
+  {
+    name: "feedback_communication",
+    label: "Feedback and communication were clear and constructive",
+  },
+  {
+    name: "career_relevance",
+    label: "The work was relevant to my career goals",
+  },
   { name: "resource_access", label: "I had access to the resources I needed" },
   { name: "team_integration", label: "I felt integrated and part of the team" },
-  { name: "future_recommendation", label: "I would recommend this co-op to other students" },
+  {
+    name: "future_recommendation",
+    label: "I would recommend this co-op to other students",
+  },
 ];
 
+class ReviewManager {
+  constructor(jobId, studentId) {
+    this.jobId = jobId;
+    this.studentId = studentId;
+    this.review = null;
+  }
+
+  async load() {
+    try {
+      const { data, error } = await supabaseClient
+        .from("student_reviews")
+        .select("*")
+        .eq("student_id", this.studentId)
+        .eq("job_id", this.jobId)
+        .maybeSingle(); // Use maybeSingle instead of single
+
+      if (error) {
+        console.error("Error loading review:", error);
+        return null;
+      }
+
+      this.review = data;
+      return this.review;
+    } catch (err) {
+      console.error("Error in ReviewManager.load:", err);
+      return null;
+    }
+  }
+
+  async save(formData) {
+    try {
+      const payload = {
+        student_id: this.studentId,
+        job_id: this.jobId,
+        is_submitted: true,
+        highlights_experience: formData.get("highlights_experience") || "",
+        opportunities_improvement:
+          formData.get("opportunities_improvement") || "",
+      };
+
+      // Add rating values
+      reviewQuestions.forEach((q) => {
+        const value = formData.get(q.name);
+        payload[q.name] = value ? parseInt(value) : null;
+      });
+
+      if (this.review?.id) {
+        // Update existing review
+        const { error } = await supabaseClient
+          .from("student_reviews")
+          .update(payload)
+          .eq("id", this.review.id);
+
+        if (error) throw error;
+        this.review = { ...this.review, ...payload };
+        return true;
+      } else {
+        // Create new review
+        const { data, error } = await supabaseClient
+          .from("student_reviews")
+          .insert(payload)
+          .select()
+          .single();
+
+        if (error) throw error;
+        this.review = data;
+        return true;
+      }
+    } catch (error) {
+      console.error("Error saving review:", error);
+      return false;
+    }
+  }
+
+  isSubmitted() {
+    return this.review?.is_submitted === true;
+  }
+}
+
 function setText(el, text) {
-  if (!el) return;
-  el.textContent = text ?? "";
+  if (el) el.textContent = text || "";
 }
 
 function formatDate(iso) {
   if (!iso) return "—";
   try {
-    const d = new Date(iso);
-    return d.toLocaleDateString();
+    return new Date(iso).toLocaleDateString();
   } catch {
     return iso;
   }
@@ -58,91 +151,429 @@ function formatPay(job) {
       }
     }
     if (job.hourly_pay) {
-      return typeof job.hourly_pay === "number" ? `$${job.hourly_pay}/hr` : `${job.hourly_pay}`;
+      return typeof job.hourly_pay === "number"
+        ? `$${job.hourly_pay}/hr`
+        : `${job.hourly_pay}`;
     }
     return "Paid (amount not specified)";
   }
   return "—";
 }
 
+function createRatingInput(name, label, value = null, readOnly = false) {
+  const container = document.createElement("div");
+  container.className = "rating-group";
 
-function createRecordNode(application, job, recruiter) {
-  const clone = recordTpl.content.firstElementChild.cloneNode(true);
-  clone.dataset.jobId = job?.id ?? "";
+  const labelEl = document.createElement("div");
+  labelEl.className = "rating-label";
+  labelEl.textContent = label;
+  container.appendChild(labelEl);
 
-  const logo = clone.querySelector(".logo");
-  const initials = (recruiter?.company_name ?? job?.job_title ?? "Co-op")
-    .split(" ")
-    .map(s => s[0])
-    .slice(0,2)
-    .join("")
-    .toUpperCase();
-  logo.textContent = initials;
+  const scale = document.createElement("div");
+  scale.className = "rating-scale";
 
-  setText(clone.querySelector(".job-title"), job?.job_title ?? "Untitled role");
-  setText(clone.querySelector(".company-name"), recruiter?.company_name ?? ("Company #" + (job?.company_id ?? "—")));
-  setText(clone.querySelector(".location"), job?.location ?? "—");
-  setText(clone.querySelector(".work-type"), job?.work_type ?? (job?.is_full_time ? "Full-time" : "Part-time / unspecified"));
+  const ratingTexts = [
+    "Strongly Disagree",
+    "Disagree",
+    "Neutral",
+    "Agree",
+    "Strongly Agree",
+  ];
 
-  const termText = [job?.term ?? null, job?.start_date ? `${formatDate(job.start_date)} — ${job.end_date ? formatDate(job.end_date) : "ongoing"}` : null]
-    .filter(Boolean)
-    .join(" • ");
-  setText(clone.querySelector(".term-and-dates"), termText);
+  for (let i = 1; i <= 5; i++) {
+    const option = document.createElement("div");
+    option.className = "rating-option";
+    if (readOnly) option.classList.add("readonly");
 
-  setText(clone.querySelector(".job-description"), job?.job_description ?? job?.job_qualifications ?? "No description provided.");
-  setText(clone.querySelector(".compensation"), formatPay(job));
-  setText(clone.querySelector(".openings"), job?.no_of_open_positions ?? "—");
-  setText(clone.querySelector(".majors"), Array.isArray(job?.desired_majors) ? job.desired_majors.join(", ") : (job?.desired_majors ?? "—"));
-  setText(clone.querySelector(".gpa"), job?.gpa ?? "—");
-  setText(clone.querySelector(".qualifications"), job?.job_qualifications ?? "—");
-  setText(clone.querySelector(".recruiter-name"), recruiter ? `${recruiter.first_name ?? ""} ${recruiter.last_name ?? ""}`.trim() : "Recruiter");
-  setText(clone.querySelector(".recruiter-company"), recruiter?.company_name ?? "");
-  const emailLink = clone.querySelector(".recruiter-email");
-  if (recruiter?.email) {
-    emailLink.href = `mailto:${recruiter.email}`;
-    emailLink.textContent = recruiter.email;
-  } else {
-    emailLink.removeAttribute("href");
-    emailLink.textContent = "Email not provided";
-    emailLink.classList.add("muted");
+    // Check if this option should be selected
+    const isSelected = value !== null && (value === i || value === String(i));
+    if (isSelected) {
+      option.classList.add("active");
+    }
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = name;
+    input.value = i;
+    input.id = `${name}-${i}`;
+    input.required = true;
+    if (readOnly) input.disabled = true;
+    if (isSelected) input.checked = true;
+
+    const inputLabel = document.createElement("label");
+    inputLabel.htmlFor = `${name}-${i}`;
+    inputLabel.className = "rating-label-inner";
+    inputLabel.innerHTML = `
+      <span class="rating-number">${i}</span>
+      <span class="rating-text">${ratingTexts[i - 1]}</span>
+    `;
+
+    if (!readOnly) {
+      input.addEventListener("change", (e) => {
+        // Remove active class from all options in this group
+        scale.querySelectorAll(".rating-option").forEach((opt) => {
+          opt.classList.remove("active");
+        });
+        // Add active class to selected option
+        option.classList.add("active");
+      });
+    }
+
+    option.appendChild(input);
+    option.appendChild(inputLabel);
+    scale.appendChild(option);
   }
 
-  setText(clone.querySelector(".in-person"), yesNo(job?.requires_in_person_interviews));
-  setText(clone.querySelector(".transport"), yesNo(job?.requires_transportation));
-  setText(clone.querySelector(".scdc"), yesNo(job?.follows_scdc_calendar));
+  container.appendChild(scale);
+  return container;
+}
 
-  const expandBtn = clone.querySelector(".expand-btn");
-  const body = clone.querySelector(".card-body");
+function renderReviewForm(container, review, readOnly = false) {
+  const ratingSection = container.querySelector(".rating-section");
+  if (!ratingSection) return;
 
-  expandBtn.addEventListener("click", () => {
-    const expanded = expandBtn.getAttribute("aria-expanded") === "true";
-    expandBtn.setAttribute("aria-expanded", String(!expanded));
-    expandBtn.textContent = expanded ? "+" : "-";
-    if (expanded) {
-      body.hidden = true;
-    } else {
-      body.hidden = false;
-      body.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+  ratingSection.innerHTML = "";
+
+  reviewQuestions.forEach((q) => {
+    const ratingValue = review ? review[q.name] : null;
+    const ratingInput = createRatingInput(
+      q.name,
+      q.label,
+      ratingValue,
+      readOnly
+    );
+    ratingSection.appendChild(ratingInput);
+  });
+}
+
+function renderReviewDisplay(container, review) {
+  const display = container.querySelector("#review-display");
+  if (!display) return;
+
+  display.innerHTML = "";
+  display.hidden = false;
+
+  const ratingTexts = [
+    "Strongly Disagree",
+    "Disagree",
+    "Neutral",
+    "Agree",
+    "Strongly Agree",
+  ];
+
+  reviewQuestions.forEach((q) => {
+    const value = review[q.name];
+    const ratingText = value ? ratingTexts[value - 1] : "Not rated";
+
+    const questionDiv = document.createElement("div");
+    questionDiv.className = "review-question";
+    questionDiv.innerHTML = `
+      <strong>${q.label}:</strong> 
+      <span class="rating-value">${value || "—"} (${ratingText})</span>
+    `;
+    display.appendChild(questionDiv);
   });
 
-  initTabs(clone);
-  initReviewSystem(clone, application, job);
+  if (review.highlights_experience) {
+    const highlightsDiv = document.createElement("div");
+    highlightsDiv.innerHTML = `
+      <h4>Highlights of Experience</h4>
+      <p>${review.highlights_experience}</p>
+    `;
+    display.appendChild(highlightsDiv);
+  }
 
-  return clone;
+  if (review.opportunities_improvement) {
+    const improvementsDiv = document.createElement("div");
+    improvementsDiv.innerHTML = `
+      <h4>Opportunities for Improvement</h4>
+      <p>${review.opportunities_improvement}</p>
+    `;
+    display.appendChild(improvementsDiv);
+  }
+}
+
+async function setupReviewTab(tabElement, application, job) {
+  try {
+    const reviewManager = new ReviewManager(job.id, application.student_id);
+    await reviewManager.load();
+
+    const statusText = tabElement.querySelector(".review-status-text");
+    const display = tabElement.querySelector("#review-display");
+    const form = tabElement.querySelector("#review-form");
+    const reviewActions = tabElement.querySelector(".review-actions");
+    const editBtn = tabElement.querySelector("#edit-review-btn");
+    const cancelEditBtn = tabElement.querySelector("#cancel-edit");
+
+    if (!statusText || !display || !form || !reviewActions) {
+      console.error("Review tab elements not found");
+      return;
+    }
+
+    if (reviewManager.review && reviewManager.isSubmitted()) {
+      // Show completed review - use the FORM view but make it read-only
+      statusText.textContent = "Review completed.";
+      display.hidden = true; // Hide the text display
+      form.hidden = false; // Show the form (read-only)
+      reviewActions.hidden = true; // Hide edit button completely
+      if (cancelEditBtn) cancelEditBtn.hidden = true;
+
+      // Render form in read-only mode
+      renderReviewForm(tabElement, reviewManager.review, true);
+
+      // Populate text fields as read-only
+      const highlights = form.querySelector("#highlights");
+      const improvements = form.querySelector("#improvements");
+      if (highlights) {
+        highlights.value = reviewManager.review.highlights_experience || "";
+        highlights.readOnly = true;
+        highlights.style.backgroundColor = "#f8f9fa";
+        highlights.style.cursor = "not-allowed";
+      }
+      if (improvements) {
+        improvements.value =
+          reviewManager.review.opportunities_improvement || "";
+        improvements.readOnly = true;
+        improvements.style.backgroundColor = "#f8f9fa";
+        improvements.style.cursor = "not-allowed";
+      }
+
+      // Hide the submit button
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.hidden = true;
+
+      // Add a class to dim the entire form
+      form.classList.add("readonly-form");
+    } else if (reviewManager.review && !reviewManager.isSubmitted()) {
+      // Show draft review
+      statusText.textContent = "Draft review (not submitted)";
+      display.hidden = true;
+      form.hidden = false;
+      reviewActions.hidden = true;
+      if (cancelEditBtn) cancelEditBtn.hidden = true;
+
+      // Remove readonly class if it exists
+      form.classList.remove("readonly-form");
+
+      renderReviewForm(tabElement, reviewManager.review, false);
+      const highlights = form.querySelector("#highlights");
+      const improvements = form.querySelector("#improvements");
+      if (highlights) {
+        highlights.value = reviewManager.review.highlights_experience || "";
+        highlights.readOnly = false;
+        highlights.style.backgroundColor = "";
+        highlights.style.cursor = "";
+      }
+      if (improvements) {
+        improvements.value =
+          reviewManager.review.opportunities_improvement || "";
+        improvements.readOnly = false;
+        improvements.style.backgroundColor = "";
+        improvements.style.cursor = "";
+      }
+
+      // Show submit button
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.hidden = false;
+    } else {
+      // New review
+      statusText.textContent = "Please complete your review.";
+      display.hidden = true;
+      form.hidden = false;
+      reviewActions.hidden = true;
+      if (cancelEditBtn) cancelEditBtn.hidden = true;
+
+      // Remove readonly class if it exists
+      form.classList.remove("readonly-form");
+
+      renderReviewForm(tabElement, null, false);
+
+      // Show submit button
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.hidden = false;
+    }
+
+    // Handle form submission (only for non-submitted reviews)
+    if (!reviewManager.isSubmitted()) {
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const success = await reviewManager.save(new FormData(form));
+        if (success) {
+          // Reload the review tab
+          await setupReviewTab(tabElement, application, job);
+        } else {
+          alert("Failed to save review. Please try again.");
+        }
+      };
+    } else {
+      // Prevent form submission for completed reviews
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        return false;
+      };
+    }
+  } catch (error) {
+    console.error("Error setting up review tab:", error);
+  }
+}
+
+function createRecordNode(application, job, recruiter) {
+  const clone = recordTpl.content.cloneNode(true);
+  const article = clone.querySelector(".job-card");
+  article.dataset.jobId = job?.id || "";
+
+  // Set basic info
+  const logo = article.querySelector(".logo");
+  if (logo) {
+    const initials = (recruiter?.company_name || job?.job_title || "Co-op")
+      .split(" ")
+      .map((s) => s[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+    logo.textContent = initials;
+  }
+
+  // Set text content for various elements
+  const textMappings = [
+    { selector: ".job-title", value: job?.job_title || "Untitled role" },
+    {
+      selector: ".company-name",
+      value: recruiter?.company_name || "Company #" + (job?.company_id || "—"),
+    },
+    { selector: ".location", value: job?.location || "—" },
+    {
+      selector: ".work-type",
+      value: job?.work_type || (job?.is_full_time ? "Full-time" : "Part-time"),
+    },
+    {
+      selector: ".job-description",
+      value: job?.job_description || "No description",
+    },
+    { selector: ".compensation", value: formatPay(job) },
+    { selector: ".openings", value: job?.no_of_open_positions || "—" },
+    {
+      selector: ".majors",
+      value: Array.isArray(job?.desired_majors)
+        ? job.desired_majors.join(", ")
+        : job?.desired_majors || "—",
+    },
+    { selector: ".gpa", value: job?.gpa || "—" },
+    { selector: ".qualifications", value: job?.job_qualifications || "—" },
+    {
+      selector: ".in-person",
+      value: yesNo(job?.requires_in_person_interviews),
+    },
+    { selector: ".transport", value: yesNo(job?.requires_transportation) },
+    { selector: ".scdc", value: yesNo(job?.follows_scdc_calendar) },
+  ];
+
+  textMappings.forEach((mapping) => {
+    const el = article.querySelector(mapping.selector);
+    if (el) setText(el, mapping.value);
+  });
+
+  // Set recruiter info
+  const recruiterName = article.querySelector(".recruiter-name");
+  const recruiterCompany = article.querySelector(".recruiter-company");
+  const recruiterEmail = article.querySelector(".recruiter-email");
+
+  if (recruiterName && recruiter) {
+    setText(
+      recruiterName,
+      `${recruiter.first_name || ""} ${recruiter.last_name || ""}`.trim() ||
+        "Recruiter"
+    );
+  }
+  if (recruiterCompany && recruiter) {
+    setText(recruiterCompany, recruiter.company_name || "");
+  }
+  if (recruiterEmail && recruiter?.email) {
+    recruiterEmail.href = `mailto:${recruiter.email}`;
+    setText(recruiterEmail, recruiter.email);
+  } else if (recruiterEmail) {
+    recruiterEmail.href = "#";
+    setText(recruiterEmail, "Email not provided");
+  }
+
+  // Term and dates
+  const termAndDates = article.querySelector(".term-and-dates");
+  if (termAndDates) {
+    const termText = [
+      job?.term,
+      job?.start_date
+        ? `${formatDate(job.start_date)} — ${
+            job.end_date ? formatDate(job.end_date) : "ongoing"
+          }`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" • ");
+    setText(termAndDates, termText);
+  }
+
+  // Setup expand button
+  const expandBtn = article.querySelector(".expand-btn");
+  const body = article.querySelector(".card-body");
+  if (expandBtn && body) {
+    expandBtn.onclick = () => {
+      const expanded = expandBtn.getAttribute("aria-expanded") === "true";
+      expandBtn.setAttribute("aria-expanded", String(!expanded));
+      expandBtn.textContent = expanded ? "+" : "−";
+      body.hidden = expanded;
+    };
+  }
+
+  // Setup tabs
+  const tabBtns = article.querySelectorAll(".tab-btn");
+  const tabContents = article.querySelectorAll(".tab-content");
+
+  tabBtns.forEach((btn) => {
+    btn.onclick = () => {
+      const tab = btn.dataset.tab;
+
+      // Update tab buttons
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // Update tab content visibility
+      tabContents.forEach((content) => {
+        content.hidden = !content.classList.contains(`tab-${tab}`);
+      });
+
+      // If switching to review tab, initialize it
+      if (tab === "student-review") {
+        const reviewTab = article.querySelector(".tab-student-review");
+        if (reviewTab) {
+          // Use setTimeout to ensure the tab is visible before initializing
+          setTimeout(() => {
+            setupReviewTab(reviewTab, application, job);
+          }, 100);
+        }
+      }
+    };
+  });
+
+  return article;
 }
 
 async function loadEmploymentRecords() {
   try {
-    const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
+    const { data: userData, error: userErr } =
+      await supabaseClient.auth.getUser();
     if (userErr) {
       console.error("Auth error:", userErr);
       userStatusEl.textContent = "Not signed in";
       loadingEl.textContent = "Please sign in to view your employment records.";
       return;
     }
-    const user = userData?.user ?? null;
-    const { data: appsData, error: appsErr } = await supabaseClient
+
+    const user = userData.user;
+    userStatusEl.textContent = `Signed in as ${user.email}`;
+
+    // First try with join
+    const { data: applications, error: appsErr } = await supabaseClient
       .from("current_applications")
       .select("*, job_listings(*)")
       .eq("student_id", user.id)
@@ -150,357 +581,56 @@ async function loadEmploymentRecords() {
       .order("applied_date", { ascending: false });
 
     if (appsErr) {
-      console.warn("Error fetching applications with joined job_lists:", appsErr);
-      const { data: appsOnly, error: appsOnlyErr } = await supabaseClient
-        .from("current_applications")
-        .select("*")
-        .eq("student_id", user.id)
-        .eq("offer_decision", "offer accepted")
-        .order("applied_date", { ascending: false });
-
-      if (appsOnlyErr) throw appsOnlyErr;
-      return renderApplicationsFallback(appsOnly);
+      console.error("Error fetching applications:", appsErr);
+      loadingEl.textContent = "Error loading records. Please try again.";
+      return;
     }
 
-    const applications = appsData ?? [];
+    loadingEl.hidden = true;
 
-    if (!applications.length) {
-      totalCoopsEl.textContent = "0";
-      loadingEl.hidden = true;
+    if (!applications || applications.length === 0) {
       emptyState.hidden = false;
+      totalCoopsEl.textContent = "0";
       return;
     }
 
     recordsRoot.innerHTML = "";
-    loadingEl.hidden = true;
-    emptyState.hidden = true;
+    totalCoopsEl.textContent = applications.length.toString();
 
-    const nodes = [];
     for (const app of applications) {
-      let job = app.job_lists ?? null;
+      const job = app.job_listings || {};
 
-      if (!job && app.job_id) {
-        const { data: jobData, error: jobErr } = await supabaseClient
-          .from("job_listings")
-          .select("*")
-          .eq("id", app.job_id)
-          .limit(1)
-          .maybeSingle();
-
-        if (jobErr) {
-          console.warn("Error fetching job for app", app.id, jobErr);
-        } else {
-          job = jobData;
-        }
-      }
-
+      // Get recruiter info if available
       let recruiter = null;
-      try {
-        const companyId = job?.company_id ?? null;
-        if (companyId !== null && companyId !== undefined) {
+      if (job.company_id) {
+        try {
           const { data: recData, error: recErr } = await supabaseClient
             .from("recruiters")
             .select("*")
-            .eq("company_id", companyId)
-            .limit(1)
-            .maybeSingle();
-          if (recErr) {
-            console.warn("Recruiter fetch error for company", companyId, recErr);
-          } else {
-            recruiter = recData ?? null;
+            .eq("company_id", job.company_id)
+            .limit(1);
+
+          if (!recErr && recData && recData.length > 0) {
+            recruiter = recData[0];
           }
+        } catch (recError) {
+          console.warn("Could not fetch recruiter:", recError);
         }
-      } catch (err) {
-        console.warn("Recruiter lookup failed", err);
       }
 
-      const node = createRecordNode(app, job ?? {}, recruiter ?? {});
-      recordsRoot.appendChild(node);
+      const recordNode = createRecordNode(app, job, recruiter);
+      recordsRoot.appendChild(recordNode);
     }
-
-    totalCoopsEl.textContent = String(applications.length);
-
-  } catch (err) {
-    console.error("Error loading employment records:", err);
-    loadingEl.textContent = "An error occurred while loading records. Check console for details.";
+  } catch (error) {
+    console.error("Error loading records:", error);
+    loadingEl.textContent =
+      "Error loading records. Please check console for details.";
   }
 }
 
-
-async function renderApplicationsFallback(appsOnly) {
-  recordsRoot.innerHTML = "";
-  loadingEl.hidden = true;
-
-  const apps = appsOnly ?? [];
-  if (!apps.length) {
-    totalCoopsEl.textContent = "0";
-    emptyState.hidden = false;
-    return;
-  }
-
-  for (const app of apps) {
-    const { data: jobData, error: jobErr } = await supabaseClient
-      .from("job_lists")
-      .select("*")
-      .eq("id", app.job_id)
-      .limit(1)
-      .maybeSingle();
-
-    const job = jobData ?? {};
-    let recruiter = null;
-    if (job.company_id) {
-      const { data: recData } = await supabaseClient
-        .from("recruiters")
-        .select("*")
-        .eq("company_id", job.company_id)
-        .limit(1)
-        .maybeSingle();
-      recruiter = recData ?? null;
-    }
-
-    const node = createRecordNode(app, job, recruiter);
-    recordsRoot.appendChild(node);
-  }
-
-  totalCoopsEl.textContent = String(apps.length);
-}
-async function loadReviewData(studentId, jobId) {
-  const { data, error } = await supabaseClient
-    .from("student_reviews")
-    .select("*")
-    .eq("student_id", studentId)
-    .eq("job_id", jobId)
-    .limit(1);
-
-  if (error) {
-    console.error("Review load error:", error);
-    return null;
-  }
-
-  return data?.[0] ?? null;
-}
-
-function populateReviewDisplay(display, review) {
-  display.innerHTML = `
-    <h4>Your Review<h4>
-    ${reviewQuestions.map(q => `<p><strong>${q.label}:</strong> ${review[q.name]}</p>`).join('')}
-    <h4>Highlights of Experience</h4>
-    <p>${review.highlights_experience}</p>
-
-    <h4>Opportunities for Improvement</h4>
-    <p>${review.opportunities_improvement}</p>
-  `;
-}
-
-async function submitReview(form, studentId, jobId) {
-  const fd = new FormData(form);
-  const payload = { is_submitted: true };
-
-  reviewQuestions.forEach(q => {
-    payload[q.name] = fd.get(q.name);
-  });
-
-  // Check if a review already exists
-  const { data: existingReview, error: fetchErr } = await supabaseClient
-    .from("student_reviews")
-    .select("*")
-    .eq("student_id", studentId)
-    .eq("job_id", jobId)
-    .limit(1);
-
-  if (fetchErr) {
-    alert("Error checking existing review: " + fetchErr.message);
-    return false;
-  }
-
-  if (existingReview?.length) {
-    // Update existing review
-    const { error } = await supabaseClient
-      .from("student_reviews")
-      .update(payload)
-      .eq("student_id", studentId)
-      .eq("job_id", jobId);
-
-    if (error) {
-      alert("Error submitting review: " + error.message);
-      return false;
-    }
-  } else {
-    // Create new review
-    payload.student_id = studentId;
-    payload.job_id = jobId;
-
-    const { error } = await supabaseClient
-      .from("student_reviews")
-      .insert(payload);
-
-    if (error) {
-      alert("Error creating review: " + error.message);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-async function initReviewSystem(clone, application, job) {
-  const reviewTab = clone.querySelector(".tab-student-review");
-  if (!reviewTab) return;
-
-  const studentId = application.student_id;
-  const jobId = job.id;
-
-  const statusText = reviewTab.querySelector(".review-status-text");
-  const actionBtn = reviewTab.querySelector(".review-action-btn");
-  const form = reviewTab.querySelector("#studentReviewForm");
-  const display = reviewTab.querySelector(".review-display");
-
-  const review = await loadReviewData(studentId, jobId);
-
-  // Warn user if they try to leave with unsaved changes
-  form.querySelectorAll("textarea").forEach(t => {
-    t.addEventListener("input", () => {
-        warnBeforeExit = true;
-    });
-  });
-
-
-  if (!review) {
-    // New review
-    statusText.textContent = "Please complete your review.";
-    actionBtn.hidden = true;
-    form.hidden = false;
-    display.hidden = true;
-    renderRatingQuestions(form);
-  } else {
-    // Existing review
-    const readOnly = review.is_submitted === true;
-    statusText.textContent = readOnly ? "Review completed." : "Your review (editable)";
-
-    actionBtn.hidden = true;
-    form.hidden = false;
-    display.hidden = true;
-
-    renderRatingQuestions(form, review, readOnly);
-
-    // Prefill textareas
-    const highlights = form.querySelector("[name='highlights_experience']");
-    const opportunities = form.querySelector("[name='opportunities_improvement']");
-    if (highlights) {
-      highlights.value = review.highlights_experience || "";
-      highlights.disabled = readOnly;
-    }
-    if (opportunities) {
-      opportunities.value = review.opportunities_improvement || "";
-      opportunities.disabled = readOnly;
-    }
-
-    // Hide submit button if read-only
-    const submitBtn = form.querySelector("button[type='submit']");
-    if (submitBtn) submitBtn.hidden = readOnly;
-  }
-
-  // Add submit handler
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const ok = await submitReview(form, studentId, jobId);
-    if (ok) {
-      // Reload only the review section instead of whole page if you want
-      location.reload();
-    }
-  });
-}
-
-
-
-
-function renderRatingQuestions(form, review = null, readOnly = false, namespace = "") {
-  const oldContainer = form.querySelector(".rating-container");
-  if (oldContainer) oldContainer.remove();
-
-  const container = document.createElement("div");
-  container.classList.add("rating-container");
-
-  reviewQuestions.forEach(q => {
-    const group = document.createElement("div");
-    group.classList.add("rating-group");
-
-    const label = document.createElement("div");
-    label.classList.add("rating-label");
-    label.textContent = q.label;
-    group.appendChild(label);
-
-    const scale = document.createElement("div");
-    scale.classList.add("rating-scale");
-
-    for (let i = 1; i <= 5; i++) {
-      const option = document.createElement("div");
-      option.classList.add("rating-option");
-      if (readOnly) option.classList.add("readonly");
-
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = `${namespace}-${q.name}`; // namespace the name too
-      input.value = i;
-      input.id = `${namespace}-${q.name}-${i}`;
-      if (readOnly) input.disabled = true;
-
-      const labelEl = document.createElement("label");
-      labelEl.htmlFor = input.id;
-      labelEl.classList.add("rating-label-inner");
-      labelEl.innerHTML = `<span class="rating-number">${i}</span><span class="rating-text">${
-        ["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"][i-1]
-      }</span>`;
-
-      if (!readOnly) {
-        labelEl.addEventListener("click", () => {
-          const siblings = scale.querySelectorAll(".rating-option");
-          siblings.forEach(sib => sib.classList.remove("active"));
-          option.classList.add("active");
-          warnBeforeExit = true;
-        });
-      }
-
-      if (review && review[q.name] == String(i)) {
-        option.classList.add("active");
-        input.checked = true;
-      }
-
-      option.appendChild(input);
-      option.appendChild(labelEl);
-      scale.appendChild(option);
-    }
-
-    group.appendChild(scale);
-    container.appendChild(group);
-  });
-
-  form.prepend(container);
-}
-
-
-
-
-
-function initTabs(clone) {
-  const buttons = clone.querySelectorAll(".tab-btn");
-  const tabContents = clone.querySelectorAll(".tab-content");
-
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tab = btn.dataset.tab;
-      buttons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      tabContents.forEach(c => {
-        c.hidden = !c.classList.contains(`tab-${tab}`);
-      });
-    });
-  });
-}
-
-
-
-
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize when DOM is loaded
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadEmploymentRecords);
+} else {
   loadEmploymentRecords();
-});
+}
