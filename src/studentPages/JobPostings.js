@@ -29,8 +29,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     data.forEach(row => {
         row.company_name = row.company?.company_name || "";
-        row.company_rating = row.company?.rating ?? null;
-        row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : null;
+        row.company_rating = row.company?.rating ?? "Rating not established";
+        row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : "Unpaid";
     });
 
     const table = new Tabulator("#student-jobs", {
@@ -65,6 +65,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     addCustomFilterControls(table);
+    table.on("rowClick", function(e, row){
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+            return;
+        }
+        const rowData = row.getData();
+        console.log("Row clicked:", rowData);
+        window.location.href = `JobDetails.html?jobId=${rowData.id}`;
+    });
 });
 
 async function applyToJob(jobData, cell, studentId) {

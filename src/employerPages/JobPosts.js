@@ -1,7 +1,9 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getCurrentCoopInformation } from "../components/coop-information.js";
 
 let currentEditingId = null;
 let table = null;
+let currentDate = new Date("2026-01-04");
 
 function getCompanyIdFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -91,7 +93,6 @@ async function saveJobPosting(event) {
         is_range: document.getElementById('is_range').checked,
         no_of_open_positions: document.getElementById('no_of_open_positions').value ? parseInt(document.getElementById('no_of_open_positions').value) : null,
         is_full_time: document.getElementById('is_full_time').checked,
-        job_rating: document.getElementById('job_rating').value ? parseFloat(document.getElementById('job_rating').value) : null,
         requires_in_person_interviews: document.getElementById('requires_in_person_interviews').checked,
         requires_transportation: document.getElementById('requires_transportation').checked,
         follows_scdc_calendar: document.getElementById('follows_scdc_calendar').checked,
@@ -112,6 +113,17 @@ async function saveJobPosting(event) {
         console.error('Error saving job posting:', error);
         alert('Error saving job posting. Check console for details.');
     }
+}
+
+async function jobDeletionLate(){
+    let cycle = "";
+    if (currentDate.getMonth() > 7 && currentDate.getMonth() < 4){
+        cycle = "Spring/Summer";
+    }else{
+        cycle = "Fall/Winter";
+    }
+    const coopDates = getCurrentCoopInformation(cycle, currentDate);
+    return coopDates.stage_number >= 4;
 }
 
 async function insertJobPosting(formData, companyId) {
@@ -144,7 +156,13 @@ async function updateJobPosting(jobId, formData) {
 }
 
 async function deleteJobPosting(jobId) {
-    if (!confirm('Are you sure you want to delete this job posting?')) return;
+    let setWarningMessage = jobDeletionLate();
+    if (!setWarningMessage){
+        if (!confirm('Are you sure you want to delete this job posting?')) return;
+    } else{
+        if (!confirm('Warning! Cancelling a job this late in the coop application stage can result in a strike on the company. Do you still want to proceed with this decision?')) return;
+    }
+    
     
     try {
         const { error } = await supabaseClient

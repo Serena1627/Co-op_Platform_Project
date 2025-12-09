@@ -1,5 +1,5 @@
 import { supabaseClient } from "../supabaseClient.js";
-import { parseCalendar, isBetween } from "../components/coop-information.js";
+import { getCurrentCoopInformation } from "../components/coop-information.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data, error } = await supabaseClient.auth.getUser();
@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    const coopData = await parseCalendar(profile.coop_cycle);
-    const currentCoopInformation = getCurrentCoopInformation(coopData, profile.coop_cycle);
+    const today = new Date();
+    const currentCoopInformation = await getCurrentCoopInformation(profile.coop_cycle, today);
 
     const alertsDiv = document.getElementById('alerts');
     const deadlineInfo = alertsDiv.querySelector('ul li');
@@ -65,76 +65,4 @@ async function updateJobAlerts(alertsList, userId) {
         li.classList.add("jobNotice");
         alertsList.prepend(li);
     }
-}
-
-function getCurrentCoopInformation(coopCalendar, coopCycle) {
-    const today = new Date();
-    
-    const rounds = Object.entries(coopCalendar);
-    
-    for (const [roundName, r] of rounds) {
-        const roundLetter = roundName.split('_')[0];
-
-        if (isBetween(today, r.jobPostingsAvailable, r.interviewRequestsDue)) {
-            return {
-                round: roundLetter,
-                stage: "Job Postings Available",
-                message: `View ${coopCycle} job postings starting ${r.jobPostingsAvailable.toDateString()}.`
-            };
-        }
-
-        if (today <= r.interviewRequestsDue) {
-            return {
-                round: roundLetter,
-                stage: "Interview Requests Due",
-                message: `Submit all ${coopCycle} job interview requests before ${r.interviewRequestsDue.toDateString()}.`
-            };
-        }
-
-        if (r.viewInterviewsGranted && today <= r.viewInterviewsGranted) {
-            return {
-                round: roundLetter,
-                stage: "View Interviews Granted",
-                message: `View your granted interviews on ${r.viewInterviewsGranted.toDateString()}.`
-            };
-        }
-
-        if (r.interviewPeriod && isBetween(today, r.interviewPeriod.start, r.interviewPeriod.end)) {
-            return {
-                round: roundLetter,
-                stage: "Interview Period",
-                message: `Complete all your interviews before ${r.interviewPeriod.end.toDateString()}.`
-            };
-        }
-
-        if (r.viewRankings && today <= r.viewRankings) {
-            return {
-                round: roundLetter,
-                stage: "View Rankings",
-                message: `View job rankings starting ${r.viewRankings.toDateString()}.`
-            };
-        }
-
-        if (r.rankingsDue && today <= r.rankingsDue) {
-            return {
-                round: roundLetter,
-                stage: "Rankings Due",
-                message: `Submit your rankings before ${r.rankingsDue.toDateString()}.`
-            };
-        }
-
-        if (r.resultsAvailable && today <= r.resultsAvailable) {
-            return {
-                round: roundLetter,
-                stage: "Results Available",
-                message: `Your co-op results will be available on ${r.resultsAvailable.toDateString()}.`
-            };
-        }
-    }
-
-    return {
-        round: null,
-        stage: "No Active Round",
-        message: "You are not currently in an active co-op cycle."
-    };
 }
