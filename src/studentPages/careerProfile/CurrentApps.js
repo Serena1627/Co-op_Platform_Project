@@ -872,7 +872,11 @@ async function updateApplicationStatus(applicationId, stage){
 
             data = response.data;
             const application_status = data.status;
-            const statusBadge = card.querySelector(".status-badge");
+        
+            const card = document.querySelector(`.application-card[data-application-id="${applicationId}"]`);
+            
+            if (card) {
+                const statusBadge = card.querySelector(".status-badge");
                 if (application_status === "interview") {
                     statusBadge.textContent = "Interview Requested";
                     statusBadge.className = "status-badge status-interview";
@@ -880,7 +884,8 @@ async function updateApplicationStatus(applicationId, stage){
                     statusBadge.textContent = "Not Selected";
                     statusBadge.className = "status-badge status-rejected";
                 }
-                card.dataset.status = newStatus;
+                card.dataset.status = application_status;
+            }
         }
         return data;
     } catch (error){
