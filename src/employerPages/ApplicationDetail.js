@@ -1,4 +1,5 @@
 import { supabaseClient } from "../supabaseClient.js";
+const FORCE_ENABLE_MESSAGES = true;
 
 const currentDate = new Date().toISOString().split("T")[0];
 const queryParams = new URLSearchParams(window.location.search);
@@ -20,7 +21,6 @@ const studentIntlEl = document.getElementById("student-international");
 const studentAdvisorEl = document.getElementById("student-advisor");
 
 const jobTitleEl = document.getElementById("job-title");
-const companyNameEl = document.getElementById("company-name");
 const requiresCitizenshipEl = document.getElementById("requires-citizenship");
 const openPositionsEl = document.getElementById("open-positions");
 const noApplicantsEl = document.getElementById("no-applicants");
@@ -41,6 +41,7 @@ const btnInterview = document.getElementById("mark-interview");
 const btnOffer = document.getElementById("mark-offer");
 const btnRanked = document.getElementById("mark-ranked");
 const btnReject = document.getElementById("mark-rejected");
+const offerRankingNote = document.getElementById("offer-ranking-note");
 
 const btnMessage = document.getElementById("message-student");
 const messageNote = document.getElementById("message-availability-note");
@@ -68,9 +69,9 @@ async function init() {
     try {
         showLoading("Loading application...");
         const { data: appData, error: appError } = await supabaseClient
-            .from("current_applications")
+            .from("application_submissions")
             .select("*")
-            .eq("id", applicationId)
+            .eq("application_id", applicationId)
             .maybeSingle();
 
         if (appError) throw appError;
@@ -167,6 +168,7 @@ async function init() {
 
 function renderAll() {
     applyCoopCalendarGating();
+    applyStatusGating();
     studentNameEl.innerText = `${studentRecord.first_name || ""} ${studentRecord.last_name || ""}`;
     studentAvatarEl.innerText = `${(studentRecord.first_name?.charAt(0) || "")}${(studentRecord.last_name?.charAt(0) || "")}`;
     studentMajorEl.innerText = studentRecord.major || "N/A";
@@ -178,7 +180,6 @@ function renderAll() {
     studentAdvisorEl.innerText = studentRecord.coop_advisor || `${studentRecord.coop_advisor_email || ""}`;
 
     jobTitleEl.innerText = applicationRecord.job_title || (jobRecord ? jobRecord.job_title : "N/A");
-    companyNameEl.innerText = applicationRecord.company_name || "N/A";
     requiresCitizenshipEl.innerText = applicationRecord.requires_citizenship ? "Yes" : "No";
     openPositionsEl.innerText = applicationRecord.no_of_open_positions ?? "N/A";
     noApplicantsEl.innerText = applicationRecord.no_o_applications ?? (jobRecord?.no_applicants ?? "N/A");
@@ -235,6 +236,25 @@ function applyCoopCalendarGating(){
         btnInReview.remove();
         btnInterview.remove();
     }
+
+    const TEST_MODE = true;
+    if (TEST_MODE) {
+    btnInReview.disabled = false;
+    btnInterview.disabled = false;
+    btnReject.disabled = false;
+    btnOffer.disabled = false;
+    btnRanked.disabled = false;
+    return;
+}
+
+    
+}
+
+function applyStatusGating(){
+    if (applicationRecord.status === "ranked" || applicationRecord.status === "offer"){
+        btnOffer.disabled = true;
+        offerRankingNote.innerText = "An offer has already been sent out for this student";
+    }
 }
 
 function setStatusBadge(status) {
@@ -250,33 +270,274 @@ function setStatusBadge(status) {
     }
 }
 
+async function validateOfferNumber() {
+    const openPositions = jobRecord?.no_of_open_positions ?? 0;
+
+    const { count: currentOffers, error: offerError } = await supabaseClient
+        .from("current_applications")
+        .select("*", { count: "exact", head: true })
+        .eq("job_id", applicationRecord.job_id)
+        .eq("status", "offer");
+
+    if (offerError) {
+        alert("Could not verify available positions.");
+        console.error(offerError);
+        return false;
+    }
+
+    if (currentOffers < openPositions) return true;
+
+    const choice = await showOfferLimitDialog(currentOffers, openPositions);
+
+    if (choice === "replace") {
+        await showReplaceOfferDialog();
+        return false;
+    }
+
+    if (choice === "rank") {
+        await updateStatus("ranked");
+        return false;
+    }
+
+    return false;
+}
+
+
+async function validateRanking() {
+    const openPositions = jobRecord?.no_of_open_positions ?? 0;
+
+    const { count: offerCount } = await supabaseClient
+        .from("current_applications")
+        .select("*", { count: "exact", head: true })
+        .eq("job_id", applicationRecord.job_id)
+        .eq("status", "offer");
+
+    if (offerCount < openPositions) {
+        alert(`You must give all ${openPositions} offers before ranking candidates.`);
+        return false;
+    }
+
+    const { count: rankCount } = await supabaseClient
+        .from("current_applications")
+        .select("*", { count: "exact", head: true })
+        .eq("job_id", applicationRecord.job_id)
+        .eq("status", "ranked");
+
+    if (rankCount >= 5) {
+        alert("You may only rank up to five candidates.");
+        return false;
+    }
+
+    return true;
+}
+
+
+function showOfferLimitDialog(currentOffers, maxOffers) {
+    return new Promise(resolve => {
+        const overlay = document.createElement("div");
+        overlay.className = "dialog-overlay";
+
+        const dialog = document.createElement("div");
+        dialog.className = "offer-limit-dialog";
+
+        dialog.innerHTML = `
+            <h3>No Offer Slots Available</h3>
+            <p>You currently have <strong>${currentOffers}</strong> offers given, 
+            but only <strong>${maxOffers}</strong> positions available.</p>
+
+            <p>What would you like to do?</p>
+
+            <div class="dialog-actions">
+                <button id="replace-offer">Replace another student's offer</button>
+                <button id="rank-student">Rank this student instead</button>
+                <button id="cancel">Cancel</button>
+            </div>
+        `;
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        document.getElementById("replace-offer").onclick = () => {
+            document.body.removeChild(overlay);
+            resolve("replace");
+        };
+        document.getElementById("rank-student").onclick = () => {
+            document.body.removeChild(overlay);
+            resolve("rank");
+        };
+        document.getElementById("cancel").onclick = () => {
+            document.body.removeChild(overlay);
+            resolve("cancel");
+        };
+    });
+}
+
+
+async function showReplaceOfferDialog() {
+    try {
+        const { data: offers, error } = await supabaseClient
+            .from("current_applications")
+            .select(`
+                id,
+                student_id,
+                student_profile:student_id(first_name, last_name)
+            `)
+            .eq("job_id", applicationRecord.job_id)
+            .eq("status", "offer")
+            .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        if (!offers?.length) {
+            alert("No existing offers available to replace.");
+            return;
+        }
+
+        return new Promise(resolve => {
+            const overlay = document.createElement("div");
+            overlay.className = "dialog-overlay";
+
+            const dialog = document.createElement("div");
+            dialog.className = "replace-offer-dialog";
+
+            let listHTML = "";
+            offers.forEach(o => {
+                const name = o.student_profile
+                    ? `${o.student_profile.first_name} ${o.student_profile.last_name}`
+                    : `Student ${o.student_id}`;
+
+                listHTML += `
+                    <div class="offer-item">
+                        <span>${name}</span>
+                        <button class="replace-btn" data-offer-id="${o.id}">
+                            Replace
+                        </button>
+                    </div>`;
+            });
+
+            dialog.innerHTML = `
+                <h3>Select Offer to Replace</h3>
+                ${listHTML}
+                <button id="cancel-replace">Cancel</button>
+            `;
+
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            dialog.querySelectorAll(".replace-btn").forEach(btn => {
+                btn.onclick = async () => {
+                    const offerId = btn.dataset.offerId;
+
+                    showLoading("Updating offers...");
+
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "ranked" })
+                        .eq("id", offerId);
+
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "offer" })
+                        .eq("id", applicationId);
+
+                    hideLoading();
+                    alert("Offer replaced successfully.");
+                    document.body.removeChild(overlay);
+
+                    applicationRecord.status = "offer";
+                    setStatusBadge("offer");
+
+                    resolve(true);
+                };
+            });
+
+            document.getElementById("cancel-replace").onclick = () => {
+                document.body.removeChild(overlay);
+                resolve(false);
+            };
+        });
+
+    } catch (err) {
+        console.error(err);
+        alert("Failed to load existing offers.");
+    }
+}
+
+
 async function updateStatus(newStatus) {
     try {
-        showLoading("Updating status...");
+        showLoading("Updating...");
+
+        if (newStatus === "offer") {
+            const canOffer = await validateOfferNumber();
+            if (!canOffer) return hideLoading();
+            await updateOpenPositions();
+            await setOfferDecision("offer sent");
+        }
+
+        if (newStatus === "ranked") {
+            const canRank = await validateRanking();
+            if (!canRank) return hideLoading();
+            await setOfferDecision("ranked");
+        }
+
+        if (newStatus === "reject"){
+            await setOfferDecision("Not offered");
+        }
+
         const { data, error } = await supabaseClient
             .from("current_applications")
             .update({ status: newStatus })
             .eq("id", applicationId)
             .select()
             .maybeSingle();
-        if (!data || error) throw error || new Error("Failed to update status.");
+
+        if (error || !data) throw error;
         applicationRecord = data;
-        setStatusBadge(applicationRecord.status);
+        setStatusBadge(data.status);
+
         alert(`Status updated to "${newStatus}".`);
 
-        if (newStatus === "offer" && applicationRecord.no_of_open_positions){
-            const { data: updatedData, error: updatedError} = await supabaseClient
-                .from("job_listings")
-                .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
-                .eq("id", job_id)
-                .select()
-                .maybeSingle();
-            if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
-        }
-    } finally { hideLoading(); }
+    } catch (err) {
+        console.error(err);
+        alert("Could not update status.");
+    } finally {
+        hideLoading();
+    }
 }
 
+
+async function updateOpenPositions(){
+    const { data: updatedData, error: updatedError} = await supabaseClient
+        .from("job_listings")
+        .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
+        .eq("id", jobRecord.id)
+        .select()
+        .maybeSingle();
+    if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
+    jobRecord.no_of_open_positions = jobRecord.no_of_open_positions - 1; 
+    openPositionsEl.innerText = jobRecord.no_of_open_positions;
+}
+
+
+async function setOfferDecision(decision){
+    const { error } = await supabaseClient
+        .from("current_applications")
+        .update({ offer_decision: decision })
+        .eq("id", applicationId)
+        .maybeSingle();
+    if (error){
+        console.error("Offer Decision Error", error);
+        throw new Error(`Could not set offer decision. ${error.message}`);
+    }
+}
+
+
 function evaluateMessagingAvailability() {
+    if (FORCE_ENABLE_MESSAGES) {
+        enableMessaging();
+        return;
+    }
     btnMessage.disabled = true;
     messageNote.innerText = "Messaging available after interview view period.";
     if (!calendarRecord) { messageNote.innerText = "Messaging unavailable (calendar not found)."; return; }

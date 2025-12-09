@@ -8,16 +8,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data: userData } = await supabaseClient.auth.getUser();
     const user = userData?.user;
 
-    const { data: companyData, error: companyError } = await supabaseClient
-        .from("companies")
-        .select("*")
-        .overlaps("associates", [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
-        .maybeSingle();
+    const { data:recruiterInfo, error:companyError } = await supabaseClient
+        .from("recruiters")
+        .select(`
+            id,
+            company_id,
+            companies:company_id (
+                id,
+                company_name,
+                primary_contact
+            )`
+        )
+        .eq("id", user.id)
+        .single();
 
     if (companyError) {
         console.error("Error Getting Company Profile:", companyError);
         return;
     }
+    let companyData = recruiterInfo.companies;
+
     const companyName = companyData?.company_name;
     const companyId = companyData?.id;
     const mainPageLink = document.getElementById('main-page-link');

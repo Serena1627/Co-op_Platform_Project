@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const alertsDiv = document.getElementById('alerts');
     const deadlineInfo = alertsDiv.querySelector('ul li');
+    const allAlerts = alertsDiv.querySelector('ul');
+
+    await updateJobAlerts(allAlerts, userId);
 
     if (currentCoopInformation == null || currentCoopInformation.round == null){
         deadlineInfo.textContent = `You are not currently in an active co-op cycle.`;
@@ -35,9 +38,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.getElementById("coop-cycle").textContent = profile.coop_cycle;
+    document.getElementById("coop-round").textContent = `${currentCoopInformation.round} Round`;
     document.getElementById("coop-advisor").textContent = profile.coop_advisor && profile.coop_advisor !== "" ? profile.coop_advisor : "N/A";
     document.getElementById("intro").textContent  += profile.first_name;
 });
+
+async function updateJobAlerts(alertsList, userId) {
+    const { data, error } = await supabaseClient
+        .from("job_notifications")
+        .select("*")
+        .eq("student_id", userId);
+
+    if (error) {
+        console.error("Error getting jobAlerts", error);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        console.log("No job alerts found.");
+        return;
+    }
+
+    for (let alert of data) {
+        const li = document.createElement('li');
+        li.textContent = alert.message;
+        li.classList.add("jobNotice");
+        alertsList.prepend(li);
+    }
+}
 
 function getCurrentCoopInformation(coopCalendar, coopCycle) {
     const today = new Date();
