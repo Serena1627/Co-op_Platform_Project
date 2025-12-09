@@ -648,14 +648,12 @@ async function calculateProgressTimeline(studentId) {
 
 
 function reapplyCurrentFilter() {
-    // Get the currently active tab
     const activeTab = document.querySelector("#app-filters .tab.active");
     
     if (activeTab) {
         const filter = activeTab.textContent.trim().toLowerCase();
         filterApplications(filter);
     } else {
-        // Default to "all" if no tab is active
         filterApplications("all");
     }
 }
@@ -1055,10 +1053,8 @@ async function showRankingMode(studentId) {
         rankingContainer.appendChild(card);
     });
 
-    // Setup drag and drop
     setupRankingDragAndDrop();
 
-    // Add save button at bottom
     const saveSection = document.createElement("div");
     saveSection.className = "ranking-save-section";
     saveSection.innerHTML = `
@@ -1215,7 +1211,6 @@ async function saveRankingsFromPage() {
 
 async function handleOffers(studentId) {
     try {
-        // Step 1: Get all applications with offers or QA status
         const { data: applications, error } = await supabaseClient
             .from("current_applications")
             .select(`
@@ -1239,7 +1234,6 @@ async function handleOffers(studentId) {
 
         if (error) throw error;
 
-        // Group by job_id to process each employer separately
         const jobGroups = {};
         applications.forEach(app => {
             if (!jobGroups[app.job_id]) {
@@ -1257,7 +1251,6 @@ async function handleOffers(studentId) {
             }
         });
 
-        // Process each employer
         for (const [jobId, group] of Object.entries(jobGroups)) {
             await processEmployerMatching(jobId, group);
         }
@@ -1274,7 +1267,6 @@ async function processEmployerMatching(jobId, group) {
     const { jobInfo, offers, qas } = group;
     const positionsAvailable = jobInfo.positions_available;
     
-    // Step 1: Handle direct offers - check for rejections
     const acceptedOffers = [];
     const rejectedOfferStudents = [];
     
@@ -1283,14 +1275,12 @@ async function processEmployerMatching(jobId, group) {
         
         if (studentPreference.acceptsOffer) {
             acceptedOffers.push(offer);
-            // Update status to accepted
             await supabaseClient
                 .from("current_applications")
                 .update({ status: "accepted" })
                 .eq("id", offer.id);
         } else {
             rejectedOfferStudents.push(offer.student_id);
-            // Update status to rejected
             await supabaseClient
                 .from("current_applications")
                 .update({ status: "rejected_by_student" })
@@ -1298,11 +1288,9 @@ async function processEmployerMatching(jobId, group) {
         }
     }
     
-    // Calculate available QA spots
     const qaSpots = positionsAvailable - acceptedOffers.length;
     
     if (qaSpots <= 0) {
-        // No QA spots available, reject all QAs for this job
         for (const qa of qas) {
             await supabaseClient
                 .from("current_applications")
@@ -1312,24 +1300,18 @@ async function processEmployerMatching(jobId, group) {
         return;
     }
     
-    // Step 2: Sort QA candidates by cumulative score (lower is better)
     const sortedQAs = qas.sort((a, b) => {
-        // Primary: cumulative score (lower is better)
         if (a.cumulative_score !== b.cumulative_score) {
             return a.cumulative_score - b.cumulative_score;
         }
-        // Tie-breaker 1: employer ranking (lower is better)
         if (a.employer_rank_position !== b.employer_rank_position) {
             return a.employer_rank_position - b.employer_rank_position;
         }
-        // Tie-breaker 2: student ranking (lower is better)
         return a.student_rank_position - b.student_rank_position;
     });
     
-    // Step 3: Assign positions using stable marriage-like algorithm
     const assignments = await assignQAPositions(sortedQAs, qaSpots, jobId);
     
-    // Update database with final assignments
     for (const assignment of assignments) {
         if (assignment.assigned) {
             await supabaseClient
@@ -1346,7 +1328,6 @@ async function processEmployerMatching(jobId, group) {
 }
 
 async function checkStudentPreference(studentId, currentJobId) {
-    // Get all of this student's applications with offers or QA
     const { data: studentApps, error } = await supabaseClient
         .from("current_applications")
         .select("id, job_id, status, student_rank_position")
@@ -1357,15 +1338,13 @@ async function checkStudentPreference(studentId, currentJobId) {
     if (error || !studentApps || studentApps.length === 0) {
         return { acceptsOffer: true };
     }
-    
-    // Find the current offer
+
     const currentOffer = studentApps.find(app => app.job_id === currentJobId && app.status === "offer");
     
     if (!currentOffer) {
         return { acceptsOffer: true };
     }
-    
-    // Check if student has a better-ranked QA
+
     const betterQA = studentApps.find(app => 
         app.status === "ranked" && 
         app.student_rank_position < currentOffer.student_rank_position
@@ -1379,21 +1358,16 @@ async function checkStudentPreference(studentId, currentJobId) {
 
 async function assignQAPositions(sortedQAs, availableSpots, jobId) {
     const assignments = [];
-    const assignedStudents = new Map(); // studentId -> { applicationId, cumulativeScore, jobId }
+    const assignedStudents = new Map();
     
-    // Iterate through sorted QAs
     for (const qa of sortedQAs) {
         const studentId = qa.student_id;
         
-        // Check if student is already assigned to another job
         if (assignedStudents.has(studentId)) {
             const currentAssignment = assignedStudents.get(studentId);
             
-            // Compare cumulative scores (lower is better)
             if (qa.cumulative_score < currentAssignment.cumulativeScore) {
-                // This is a better match - reassign student
                 
-                // Mark old assignment as unassigned
                 const oldAssignmentIndex = assignments.findIndex(
                     a => a.applicationId === currentAssignment.applicationId
                 );
@@ -1401,10 +1375,8 @@ async function assignQAPositions(sortedQAs, availableSpots, jobId) {
                     assignments[oldAssignmentIndex].assigned = false;
                 }
                 
-                // Free up a spot in the old job
                 await freeUpPosition(currentAssignment.jobId);
                 
-                // Assign to new job
                 assignedStudents.set(studentId, {
                     applicationId: qa.id,
                     cumulativeScore: qa.cumulative_score,
@@ -1417,7 +1389,6 @@ async function assignQAPositions(sortedQAs, availableSpots, jobId) {
                     assigned: true
                 });
             } else {
-                // Current assignment is better - reject this QA
                 assignments.push({
                     applicationId: qa.id,
                     studentId: studentId,
@@ -1425,13 +1396,10 @@ async function assignQAPositions(sortedQAs, availableSpots, jobId) {
                 });
             }
         } else {
-            // Student not yet assigned
-            // Check if we still have spots available
             const currentAssignedCount = Array.from(assignedStudents.values())
                 .filter(a => a.jobId === jobId).length;
             
             if (currentAssignedCount < availableSpots) {
-                // Assign student to this position
                 assignedStudents.set(studentId, {
                     applicationId: qa.id,
                     cumulativeScore: qa.cumulative_score,
@@ -1444,7 +1412,6 @@ async function assignQAPositions(sortedQAs, availableSpots, jobId) {
                     assigned: true
                 });
             } else {
-                // No spots left
                 assignments.push({
                     applicationId: qa.id,
                     studentId: studentId,
@@ -1453,14 +1420,10 @@ async function assignQAPositions(sortedQAs, availableSpots, jobId) {
             }
         }
     }
-    
     return assignments;
 }
 
 async function freeUpPosition(jobId) {
-    // This function handles freeing up a position when a student
-    // gets reassigned to a better match
-    // You may want to trigger a reprocessing of that job's QAs
     console.log(`Position freed up for job ${jobId} - may need reprocessing`);
 }
 

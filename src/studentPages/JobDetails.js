@@ -30,9 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const jobData = data[0];
     if (!jobData) return;
 
-    // -----------------------------
-    // BASIC FIELDS
-    // -----------------------------
     document.getElementById("job-title").textContent = jobData.job_title;
     document.getElementById("company-name").textContent = jobData.company_name;
     document.getElementById("location").textContent = jobData.location;
@@ -40,18 +37,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("work-type").textContent = jobData.is_full_time ? "Full-Time" : "Part-Time";
     document.getElementById("rating").textContent = jobData.rating || "N/A";
 
-    // Quick stats
     document.getElementById("open-positions").textContent = jobData.no_of_open_positions;
     document.getElementById("applicants").textContent = jobData.no_of_applicants ?? "0";
     document.getElementById("experience").textContent = jobData.experience_level;
     document.getElementById("gpa-req").textContent = jobData.gpa;
-
-    // Description
     document.getElementById("job-description").innerHTML = jobData.job_description;
 
-    // -----------------------------
-    // QUALIFICATIONS (array)
-    // -----------------------------
     if (Array.isArray(jobData.job_qualifications)) {
         const ul = document.getElementById("job-qualifications");
         ul.innerHTML = "";
@@ -63,9 +54,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // -----------------------------
-    // PERKS (array)
-    // -----------------------------
     if (Array.isArray(jobData.perks)) {
         const perkContainer = document.getElementById("perks-list");
         perkContainer.innerHTML = "";
@@ -80,17 +68,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // -----------------------------
-    // CITIZENSHIP, INTERVIEW, ETC.
-    // -----------------------------
     document.getElementById("citizenship").textContent = jobData.requires_citizenship ? "Required" : "Not Required";
     document.getElementById("interview-format").textContent = jobData.requires_in_person_interviews ? "In Person" : "Virtual";
     document.getElementById("transportation").textContent = jobData.requires_transportation ? "Required" : "Not Required";
     document.getElementById("scdc-calendar").textContent = jobData.scdc_calendar ? "Follows" : "Does Not Follow";
 
-    // -----------------------------
-    // MAJORS (array)
-    // -----------------------------
     if (Array.isArray(jobData.desired_majors)) {
         const majorsContainer = document.getElementById("majors-list");
         majorsContainer.innerHTML = "";
@@ -100,9 +82,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // -----------------------------
-    // RECRUITER
-    // -----------------------------
     if (source === "applications") {
         const { data: userData } = await supabaseClient.auth.getUser();
         const user = userData?.user;
@@ -138,9 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // -----------------------------
-    // APPLY BUTTON
-    // -----------------------------
     const applyBtn = document.getElementById("apply-btn");
     applyBtn.style.display = source === "applications" ? "none" : "inline-block";
     
@@ -180,7 +156,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
                 }
 
-                // Success
                 alert("Application submitted successfully!");
                 window.location.href = "./careerProfile/CurrentApps.html";
 
