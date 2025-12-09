@@ -23,18 +23,18 @@
                 .catch(err => console.error('Navbar load error:', err));
         </script>
 
-        <div class="container">
-            <h1>Available Internships</h1>
-            <p class="subtitle">Browse external co-op and internship opportunities</p>
-            
-            <div id="jobs-container">
-                <div class="loading">
-                    <i class="fa fa-spinner"></i>
-                    <p>Loading opportunities...</p>
+        <main class="container">
+            <header class="page-header">
+                <div>
+                    <h1>Available Internships</h1>
+                    <p class="subtitle">Browse external co-op and internship opportunities</p>
                 </div>
-            </div>
-        </div>
-    
+            </header>
+
+            <section id="jobs-container" class="jobs-section">
+                <div class="loading">Loading opportunities...</div>
+            </section>    
+        </main>        
         
     </body>
 </html>

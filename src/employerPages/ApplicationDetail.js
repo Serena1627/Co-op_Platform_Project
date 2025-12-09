@@ -221,6 +221,7 @@ function renderAll() {
     evaluateMessagingAvailability();
 
     appContentEl.style.display = "block";
+    autoRejectIfInterviewNotGranted();
 }
 
 function applyCoopCalendarGating(){
@@ -232,7 +233,7 @@ function applyCoopCalendarGating(){
     if (currentDate <= interviews_start){
         btnOffer.remove();
         btnRanked.remove();
-    }else if (currentDate <= ranking_period_end){
+    } else if (currentDate >= ranking_period_start){
         btnInReview.remove();
         btnInterview.remove();
     }
@@ -570,6 +571,29 @@ function enableMessaging() {
     btnMessage.disabled = false;
     messageNote.innerText = "Messaging is available for this student.";
     btnMessage.onclick = () => window.location.href = `Messaging.html?studentId=${encodeURIComponent(studentId)}&applicationId=${encodeURIComponent(applicationId)}`;
+}
+
+async function autoRejectIfInterviewNotGranted() {
+    if (!calendarRecord || !calendarRecord.interview_period_start) return;
+    const today = new Date(2025, 10, 5);
+    const interviewStart = new Date(calendarRecord.view_interviews_granted);
+    if (today >= interviewStart) {
+        if (applicationRecord.status !== "interview") {
+            const { data, error } = await supabaseClient
+                .from("current_applications")
+                .update({ status: "not-selected" })
+                .eq("id", applicationId)
+                .select()
+                .maybeSingle();
+
+            if (error) {
+                console.error("Failed to auto-update:", error);
+            } else {
+                applicationRecord = data;
+                setStatusBadge(applicationRecord.status);
+            }
+        }
+    }
 }
 
 function showLoading(msg="Loading..."){ loadingEl.style.display="block"; loadingEl.innerText=msg; }
