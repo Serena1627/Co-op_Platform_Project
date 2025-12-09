@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     let applicationDeadline = null
-    const today = new Date();
+    const today = new Date(2025, 9, 26);
 
     const banner = document.getElementById('application-status-banner');
     for (const round in coopData){
