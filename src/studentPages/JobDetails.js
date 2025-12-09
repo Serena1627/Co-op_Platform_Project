@@ -79,32 +79,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const jobData = data[0];
     if (!jobData) return;
 
-    // Basic info
     document.getElementById("job-title").textContent = jobData.job_title || "Job Title";
     document.getElementById("company-name").textContent = jobData.companies?.company_name || "Company Name";
     document.getElementById("location").textContent = jobData.location || "Location not specified";
     document.getElementById("pay").textContent = formatPay(jobData);
     document.getElementById("work-type").textContent = jobData.is_full_time ? "Full-time" : "Part-time";
-    
-    // Rating - use employer_rating if available, otherwise job_rating, otherwise N/A
+
     const rating = jobData.employer_rating || jobData.job_rating || jobData.companies?.rating;
     document.getElementById("rating").textContent = rating ? rating.toFixed(1) : "N/A";
-    
-    // Quick stats
     document.getElementById("open-positions").textContent = jobData.no_of_open_positions || "0";
     document.getElementById("applicants").textContent = jobData.no_of_applicants || "0";
     document.getElementById("experience").textContent = jobData.experience_level || "Not specified";
     document.getElementById("gpa-req").textContent = jobData.gpa ? `${jobData.gpa}+` : "N/A";
-    
-    // Job description - keep as HTML
+
     const descriptionContainer = document.getElementById("job-description");
     if (jobData.job_description) {
         descriptionContainer.innerHTML = `<p>${jobData.job_description}</p>`;
     } else {
         descriptionContainer.innerHTML = `<p>No description available.</p>`;
     }
-    
-    // Job qualifications - create proper list structure
+
     const qualificationsContainer = document.getElementById("job-qualifications");
     if (Array.isArray(jobData.job_qualifications) && jobData.job_qualifications.length > 0) {
         const ul = document.createElement("ul");
@@ -118,8 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
         qualificationsContainer.innerHTML = `<p>No specific qualifications listed.</p>`;
     }
-    
-    // Perks - maintain proper structure
+
     const perksContainer = document.getElementById("perks-list");
     if (Array.isArray(jobData.perks) && jobData.perks.length > 0) {
         perksContainer.innerHTML = "";
@@ -133,7 +126,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             perksContainer.appendChild(perkDiv);
         });
     } else {
-        // Hide the perks section if no perks
         const perksSection = document.getElementById("perks-section");
         if (perksSection) perksSection.style.display = "none";
     }
@@ -150,7 +142,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         scdcElement.className = "info-value";
     }
     
-    // Desired majors - maintain tag structure
     const majorsContainer = document.getElementById("majors-list");
     if (Array.isArray(jobData.desired_majors) && jobData.desired_majors.length > 0) {
        majorsContainer.innerHTML = "";
@@ -204,7 +195,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
                 }
 
-                // Success
                 alert("Application submitted successfully!");
                 window.location.href = "./careerProfile/CurrentApps.html";
 

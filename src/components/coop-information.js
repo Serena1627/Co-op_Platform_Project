@@ -1,6 +1,6 @@
 import { supabaseClient } from "../supabaseClient.js";
 
-let centralDate = null;
+let centralDate = new Date("2025-12-15");
 
 export async function getCurrentCoopInformation(coopCycle, today) {
     const coopCalendar = await parseCalendar(coopCycle);

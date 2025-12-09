@@ -18,7 +18,6 @@ if (isEditMode) {
         console.error("Error loading profile:", error);
         alert("Failed to load student profile.");
     } else {
-        // Populate form fields with existing data
         document.getElementById("drexel_student_id").value = data.drexel_student_id || '';
         document.getElementById("coop_number").value = data.coop_number || '';
         document.getElementById("is_international").value = data.is_international ? "Non U.S Citizen" : "U.S Citizen";
@@ -61,13 +60,11 @@ document.getElementById("student-form").addEventListener("submit", async functio
     let result;
     
     if (isEditMode) {
-        // Update existing record
         result = await supabaseClient
             .from("student_profile")
             .update(studentData)
             .eq("student_id", user.id);
     } else {
-        // Insert new record
         result = await supabaseClient
             .from("student_profile")
             .insert([studentData]);
