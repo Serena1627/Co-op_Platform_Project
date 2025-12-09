@@ -99,8 +99,17 @@ function createApplicationCard(application, student) {
     
     const initials = `${student.first_name?.charAt(0) || ''}${student.last_name?.charAt(0) || ''}`;
     
-    const statusClass = application.status === 'reviewed' ? 'status-reviewed' : 'status-new';
-    const statusText = application.status === 'reviewed' ? 'Reviewed' : 'New Application';
+    let statusClass;
+    let statusText;
+
+    switch (application.status) {
+        case "in-review": statusClass = "status-reviewed"; statusText = "In Review"; break;
+        case "interview": statusClass = "status-interview"; statusText = "Interview"; break;
+        case "offer": statusClass = "status-offer"; statusText = "Offer"; break;
+        case "ranked": statusClass = "status-ranked"; statusText = "Ranked"; break;
+        case "rejected": statusClass = "status-rejected"; statusText = "Rejected"; break;
+        default: statusClass = "status-new"; statusText = "New Application";
+    }
     
     const citizenship = student.is_international ? 'Non-US Citizen' : 'US Citizen';
     let coop_experience = "";
