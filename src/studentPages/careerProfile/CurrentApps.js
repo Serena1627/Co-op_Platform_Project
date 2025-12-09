@@ -3,7 +3,7 @@ import { getDate } from "../../components/coop-information.js";
 
 let selectedApplications = new Set();
 
-let currentDate = new Date();
+let currentDate = getDate();
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupAppFilters();
     await loadApplications(user.id);
     await calculateProgressTimeline(user.id);
+    
 });
 
 async function loadApplications(studentId) {
@@ -599,11 +600,11 @@ async function calculateProgressTimeline(studentId) {
                 .from("current_applications")
                 .select("id")
                 .eq("student_id", studentId)
-                .eq("status", "submitted");
 
             for (let app of pendingApplications) {
                 await updateApplicationStatus(app.id, stage);
             }
+            reapplyCurrentFilter();
         }
         else if (currentDate >= currentRound.interview_period_end && currentDate < currentRound.rankings_due) {
             stage = 3;
@@ -611,25 +612,51 @@ async function calculateProgressTimeline(studentId) {
                 .from("current_applications")
                 .select("id")
                 .eq("student_id", studentId)
-                .eq("status", "interview"); 
 
             for (let app of interviewApplications) {
                 await updateApplicationStatus(app.id, stage);
             }
+
+            reapplyCurrentFilter();
             
             showRankingMode(studentId);
         }
         else if (currentDate >= currentRound.rankings_due && currentDate < currentRound.results_available) {
             stage = 4;
+            handleOffers(app.id);
         }
         else if (currentDate >= currentRound.results_available) {
             stage = 5;
+            const { data: interviewApplications } = await supabaseClient
+                .from("current_applications")
+                .select("id")
+                .eq("student_id", studentId)
+
+            for (let app of interviewApplications) {
+                await updateApplicationStatus(app.id, stage);
+            }
+
+            reapplyCurrentFilter();
         }
 
         setProgressBar(stage);
 
     } catch (error) {
         alert(`Error generating Coop Timeline: ${error.message}`);
+    }
+}
+
+
+function reapplyCurrentFilter() {
+    // Get the currently active tab
+    const activeTab = document.querySelector("#app-filters .tab.active");
+    
+    if (activeTab) {
+        const filter = activeTab.textContent.trim().toLowerCase();
+        filterApplications(filter);
+    } else {
+        // Default to "all" if no tab is active
+        filterApplications("all");
     }
 }
 
@@ -668,7 +695,7 @@ function createApplicationCard(application) {
         'in-review': { text: 'Application In Review', class: 'status-in-review' },
         'interview': { text: 'Interview Requested', class: 'status-interview' },
         'offer': { text: 'Offer Received', class: 'status-offer' },
-        'ranked': { text: 'Ranked', class: 'status-ranked' },
+        'ranked': { text: 'Qualified Alternate', class: 'status-ranked' },
         'accepted': { text: 'Offer Accepted', class: 'status-accepted' },
         'rejected': { text: 'Not Selected', class: 'status-rejected' },
         'withdrawn': { text: 'Withdrawn', class: 'status-withdrawn' }
@@ -902,6 +929,10 @@ async function updateApplicationStatus(applicationId, stage){
                     statusBadge.textContent = "Interview Requested";
                     statusBadge.className = "status-badge status-interview";
                 } else {
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "not_selected" })
+                        .eq("id", applicationId);
                     statusBadge.textContent = "Not Selected";
                     statusBadge.className = "status-badge status-rejected";
                 }
@@ -909,7 +940,6 @@ async function updateApplicationStatus(applicationId, stage){
             }
             
             else if (stage === 3) {
-                console.log("we are here in stage 3");
                 if (application_status === "offer") {
                     statusBadge.textContent = "Offer Received";
                     statusBadge.className = "status-badge status-offer";
@@ -919,10 +949,31 @@ async function updateApplicationStatus(applicationId, stage){
                     statusBadge.className = "status-badge status-ranked";
                 }
                 else {
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "not_selected" })
+                        .eq("id", applicationId);
                     statusBadge.textContent = "Not Selected";
                     statusBadge.className = "status-badge status-rejected";
                 }
                 card.dataset.status = application_status;
+            }
+
+            if (stage === 5){
+                if (application_status === "offer") {
+                    statusBadge.textContent = "Offer Received";
+                    statusBadge.className = "status-badge status-offer";
+                }
+                else {
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "not_selected" })
+                        .eq("id", applicationId);
+                    statusBadge.textContent = "Not Selected";
+                    statusBadge.className = "status-badge status-rejected";
+                }
+                card.dataset.status = application_status;
+
             }
         } else {
             console.log(`Card not found for application ${applicationId}`);
@@ -1159,6 +1210,261 @@ async function saveRankingsFromPage() {
         saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Rankings';
     }
 }
+
+async function handleOffers(studentId) {
+    try {
+        // Step 1: Get all applications with offers or QA status
+        const { data: applications, error } = await supabaseClient
+            .from("current_applications")
+            .select(`
+                id,
+                student_id,
+                job_id,
+                status,
+                student_rank_position,
+                employer_rank_position,
+                cumulative_score,
+                job_listings!inner (
+                    id,
+                    job_title,
+                    no_of_open_positions,
+                    company:company_id (
+                        company_name
+                    )
+                )
+            `)
+            .in("status", ["offer", "ranked"]);
+
+        if (error) throw error;
+
+        // Group by job_id to process each employer separately
+        const jobGroups = {};
+        applications.forEach(app => {
+            if (!jobGroups[app.job_id]) {
+                jobGroups[app.job_id] = {
+                    jobInfo: app.job_listings,
+                    offers: [],
+                    qas: []
+                };
+            }
+            
+            if (app.status === "offer") {
+                jobGroups[app.job_id].offers.push(app);
+            } else if (app.status === "ranked") {
+                jobGroups[app.job_id].qas.push(app);
+            }
+        });
+
+        // Process each employer
+        for (const [jobId, group] of Object.entries(jobGroups)) {
+            await processEmployerMatching(jobId, group);
+        }
+
+        showNotification("Job assignments processed successfully!");
+        
+    } catch (error) {
+        console.error("Error handling offers:", error);
+        alert(`Failed to process offers: ${error.message}`);
+    }
+}
+
+async function processEmployerMatching(jobId, group) {
+    const { jobInfo, offers, qas } = group;
+    const positionsAvailable = jobInfo.positions_available;
+    
+    // Step 1: Handle direct offers - check for rejections
+    const acceptedOffers = [];
+    const rejectedOfferStudents = [];
+    
+    for (const offer of offers) {
+        const studentPreference = await checkStudentPreference(offer.student_id, offer.job_id);
+        
+        if (studentPreference.acceptsOffer) {
+            acceptedOffers.push(offer);
+            // Update status to accepted
+            await supabaseClient
+                .from("current_applications")
+                .update({ status: "accepted" })
+                .eq("id", offer.id);
+        } else {
+            rejectedOfferStudents.push(offer.student_id);
+            // Update status to rejected
+            await supabaseClient
+                .from("current_applications")
+                .update({ status: "rejected_by_student" })
+                .eq("id", offer.id);
+        }
+    }
+    
+    // Calculate available QA spots
+    const qaSpots = positionsAvailable - acceptedOffers.length;
+    
+    if (qaSpots <= 0) {
+        // No QA spots available, reject all QAs for this job
+        for (const qa of qas) {
+            await supabaseClient
+                .from("current_applications")
+                .update({ status: "not_selected" })
+                .eq("id", qa.id);
+        }
+        return;
+    }
+    
+    // Step 2: Sort QA candidates by cumulative score (lower is better)
+    const sortedQAs = qas.sort((a, b) => {
+        // Primary: cumulative score (lower is better)
+        if (a.cumulative_score !== b.cumulative_score) {
+            return a.cumulative_score - b.cumulative_score;
+        }
+        // Tie-breaker 1: employer ranking (lower is better)
+        if (a.employer_rank_position !== b.employer_rank_position) {
+            return a.employer_rank_position - b.employer_rank_position;
+        }
+        // Tie-breaker 2: student ranking (lower is better)
+        return a.student_rank_position - b.student_rank_position;
+    });
+    
+    // Step 3: Assign positions using stable marriage-like algorithm
+    const assignments = await assignQAPositions(sortedQAs, qaSpots, jobId);
+    
+    // Update database with final assignments
+    for (const assignment of assignments) {
+        if (assignment.assigned) {
+            await supabaseClient
+                .from("current_applications")
+                .update({ status: "offer" })
+                .eq("id", assignment.applicationId);
+        } else {
+            await supabaseClient
+                .from("current_applications")
+                .update({ status: "not_selected" })
+                .eq("id", assignment.applicationId);
+        }
+    }
+}
+
+async function checkStudentPreference(studentId, currentJobId) {
+    // Get all of this student's applications with offers or QA
+    const { data: studentApps, error } = await supabaseClient
+        .from("current_applications")
+        .select("id, job_id, status, student_rank_position")
+        .eq("student_id", studentId)
+        .in("status", ["offer", "ranked"])
+        .order("student_rank_position", { ascending: true });
+    
+    if (error || !studentApps || studentApps.length === 0) {
+        return { acceptsOffer: true };
+    }
+    
+    // Find the current offer
+    const currentOffer = studentApps.find(app => app.job_id === currentJobId && app.status === "offer");
+    
+    if (!currentOffer) {
+        return { acceptsOffer: true };
+    }
+    
+    // Check if student has a better-ranked QA
+    const betterQA = studentApps.find(app => 
+        app.status === "ranked" && 
+        app.student_rank_position < currentOffer.student_rank_position
+    );
+    
+    return {
+        acceptsOffer: !betterQA,
+        preferredJobId: betterQA ? betterQA.job_id : currentJobId
+    };
+}
+
+async function assignQAPositions(sortedQAs, availableSpots, jobId) {
+    const assignments = [];
+    const assignedStudents = new Map(); // studentId -> { applicationId, cumulativeScore, jobId }
+    
+    // Iterate through sorted QAs
+    for (const qa of sortedQAs) {
+        const studentId = qa.student_id;
+        
+        // Check if student is already assigned to another job
+        if (assignedStudents.has(studentId)) {
+            const currentAssignment = assignedStudents.get(studentId);
+            
+            // Compare cumulative scores (lower is better)
+            if (qa.cumulative_score < currentAssignment.cumulativeScore) {
+                // This is a better match - reassign student
+                
+                // Mark old assignment as unassigned
+                const oldAssignmentIndex = assignments.findIndex(
+                    a => a.applicationId === currentAssignment.applicationId
+                );
+                if (oldAssignmentIndex !== -1) {
+                    assignments[oldAssignmentIndex].assigned = false;
+                }
+                
+                // Free up a spot in the old job
+                await freeUpPosition(currentAssignment.jobId);
+                
+                // Assign to new job
+                assignedStudents.set(studentId, {
+                    applicationId: qa.id,
+                    cumulativeScore: qa.cumulative_score,
+                    jobId: jobId
+                });
+                
+                assignments.push({
+                    applicationId: qa.id,
+                    studentId: studentId,
+                    assigned: true
+                });
+            } else {
+                // Current assignment is better - reject this QA
+                assignments.push({
+                    applicationId: qa.id,
+                    studentId: studentId,
+                    assigned: false
+                });
+            }
+        } else {
+            // Student not yet assigned
+            // Check if we still have spots available
+            const currentAssignedCount = Array.from(assignedStudents.values())
+                .filter(a => a.jobId === jobId).length;
+            
+            if (currentAssignedCount < availableSpots) {
+                // Assign student to this position
+                assignedStudents.set(studentId, {
+                    applicationId: qa.id,
+                    cumulativeScore: qa.cumulative_score,
+                    jobId: jobId
+                });
+                
+                assignments.push({
+                    applicationId: qa.id,
+                    studentId: studentId,
+                    assigned: true
+                });
+            } else {
+                // No spots left
+                assignments.push({
+                    applicationId: qa.id,
+                    studentId: studentId,
+                    assigned: false
+                });
+            }
+        }
+    }
+    
+    return assignments;
+}
+
+async function freeUpPosition(jobId) {
+    // This function handles freeing up a position when a student
+    // gets reassigned to a better match
+    // You may want to trigger a reprocessing of that job's QAs
+    console.log(`Position freed up for job ${jobId} - may need reprocessing`);
+}
+
+
+
+
 
 
 
