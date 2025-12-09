@@ -45,6 +45,17 @@ const reviewQuestions = [
   },
 ];
 
+const starRatingQuestions = [
+  {
+    name: "employer_rating",
+    label: "Overall, I would rate this employer:",
+  },
+  {
+    name: "job_rating",
+    label: "Overall, I would rate this job:",
+  },
+];
+
 class ReviewManager {
   constructor(jobId, studentId) {
     this.jobId = jobId;
@@ -86,6 +97,12 @@ class ReviewManager {
       };
 
       reviewQuestions.forEach((q) => {
+        const value = formData.get(q.name);
+        payload[q.name] = value ? parseInt(value) : null;
+      });
+
+      // Add star rating values
+      starRatingQuestions.forEach((q) => {
         const value = formData.get(q.name);
         payload[q.name] = value ? parseInt(value) : null;
       });
@@ -155,6 +172,88 @@ function formatPay(job) {
     return "Paid (amount not specified)";
   }
   return "—";
+}
+
+function createStarRating(name, label, value = null, readOnly = false) {
+  const container = document.createElement("div");
+  container.className = "star-rating-group";
+
+  const labelEl = document.createElement("div");
+  labelEl.className = "star-rating-label";
+  labelEl.textContent = label;
+  container.appendChild(labelEl);
+
+  const starsContainer = document.createElement("div");
+  starsContainer.className = "stars-container";
+
+  for (let i = 1; i <= 5; i++) {
+    const starWrapper = document.createElement("div");
+    starWrapper.className = "star-wrapper";
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = name;
+    input.value = i;
+    input.id = `${name}-star-${i}`;
+    input.required = true;
+    if (readOnly) input.disabled = true;
+    if (value !== null && (value === i || value === String(i))) {
+      input.checked = true;
+    }
+
+    const starLabel = document.createElement("label");
+    starLabel.htmlFor = `${name}-star-${i}`;
+    starLabel.className = "star-label";
+    starLabel.innerHTML = "★";
+    starLabel.title = `${i} star${i !== 1 ? 's' : ''}`;
+
+    if (!readOnly) {
+      // Hover effect - highlight stars up to the hovered one
+      starLabel.addEventListener("mouseenter", () => {
+        const allStars = starsContainer.querySelectorAll(".star-label");
+        allStars.forEach((star, idx) => {
+          if (idx < i) {
+            star.classList.add("hover");
+          } else {
+            star.classList.remove("hover");
+          }
+        });
+      });
+
+      starsContainer.addEventListener("mouseleave", () => {
+        const allStars = starsContainer.querySelectorAll(".star-label");
+        allStars.forEach(star => star.classList.remove("hover"));
+      });
+
+      input.addEventListener("change", () => {
+        // Update active stars
+        const allStars = starsContainer.querySelectorAll(".star-label");
+        allStars.forEach((star, idx) => {
+          if (idx < i) {
+            star.classList.add("active");
+          } else {
+            star.classList.remove("active");
+          }
+        });
+      });
+    }
+
+    // Set initial active state
+    if (value !== null && value >= i) {
+      starLabel.classList.add("active");
+    }
+
+    if (readOnly && value !== null && value >= i) {
+      starLabel.classList.add("active", "readonly");
+    }
+
+    starWrapper.appendChild(input);
+    starWrapper.appendChild(starLabel);
+    starsContainer.appendChild(starWrapper);
+  }
+
+  container.appendChild(starsContainer);
+  return container;
 }
 
 function createRatingInput(name, label, value = null, readOnly = false) {
@@ -238,6 +337,18 @@ function renderReviewForm(container, review, readOnly = false) {
     );
     ratingSection.appendChild(ratingInput);
   });
+
+  // Add star rating questions
+  starRatingQuestions.forEach((q) => {
+    const ratingValue = review ? review[q.name] : null;
+    const starRating = createStarRating(
+      q.name,
+      q.label,
+      ratingValue,
+      readOnly
+    );
+    ratingSection.appendChild(starRating);
+  });
 }
 
 function renderReviewDisplay(container, review) {
@@ -264,6 +375,20 @@ function renderReviewDisplay(container, review) {
     questionDiv.innerHTML = `
       <strong>${q.label}:</strong> 
       <span class="rating-value">${value || "—"} (${ratingText})</span>
+    `;
+    display.appendChild(questionDiv);
+  });
+
+  // Add star ratings to display
+  starRatingQuestions.forEach((q) => {
+    const value = review[q.name];
+    const stars = value ? "★".repeat(value) + "☆".repeat(5 - value) : "Not rated";
+
+    const questionDiv = document.createElement("div");
+    questionDiv.className = "review-question";
+    questionDiv.innerHTML = `
+      <strong>${q.label}:</strong> 
+      <span class="rating-value star-display">${stars}</span>
     `;
     display.appendChild(questionDiv);
   });
