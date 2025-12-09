@@ -1,7 +1,8 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getDate } from "../components/coop-information.js";
 const FORCE_ENABLE_MESSAGES = true;
 
-const currentDate = new Date().toISOString().split("T")[0];
+const currentDate = getDate().toISOString().split("T")[0];
 const queryParams = new URLSearchParams(window.location.search);
 const applicationId = queryParams.get("applicationId");
 const studentId = queryParams.get("studentId");
@@ -53,13 +54,6 @@ let coop_experience = null;
 let calendarRecord = null;
 let resumeFile = null;
 let resumeSignedUrl = null;
-
-const today = new Date(2025, 10, 18);
-
-function isBefore(dateStr) {
-    if (!dateStr) return false;
-    return new Date() < new Date(dateStr);
-}
 
 if (!applicationId || !studentId) {
     showError("Missing applicationId or studentId in URL.");
@@ -235,7 +229,7 @@ function applyCoopCalendarGating(){
     if (currentDate <= interviews_start){
         btnOffer.remove();
         btnRanked.remove();
-    }else if (currentDate >= ranking_period_start){
+    } else if (currentDate >= ranking_period_start){
         btnInReview.remove();
         btnInterview.remove();
     }
@@ -510,28 +504,48 @@ async function updateStatus(newStatus) {
 }
 
 
-async function updateOpenPositions(){
-    const { data: updatedData, error: updatedError} = await supabaseClient
-        .from("job_listings")
-        .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
-        .eq("id", jobRecord.id)
-        .select()
-        .maybeSingle();
-    if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
-    jobRecord.no_of_open_positions = jobRecord.no_of_open_positions - 1; 
-    openPositionsEl.innerText = jobRecord.no_of_open_positions;
-}
+async function setOfferDecision(decision) {
+    try {
+        if (decision === "ranked") {
+            const { data: rankedRow, error: rankedError } = await supabaseClient
+                .from("current_applications")
+                .select("employer_rank_position")
+                .order("employer_rank_position", { ascending: false })
+                .limit(1)
+                .single();
 
+            if (rankedError) {
+                console.error("Offer Decision Error", rankedError);
+                throw new Error(`Could not get previous rank position. ${rankedError.message}`);
+            }
 
-async function setOfferDecision(decision){
-    const { error } = await supabaseClient
-        .from("current_applications")
-        .update({ offer_decision: decision })
-        .eq("id", applicationId)
-        .maybeSingle();
-    if (error){
-        console.error("Offer Decision Error", error);
-        throw new Error(`Could not set offer decision. ${error.message}`);
+            const lastRank = rankedRow?.employer_rank_position ?? 0;
+
+            const { error: updateRankError } = await supabaseClient
+                .from("current_applications")
+                .update({ employer_rank_position: lastRank + 1 })
+                .eq("id", applicationId)
+                .maybeSingle();
+
+            if (updateRankError) {
+                console.error("Offer Decision Error", updateRankError);
+                throw new Error(`Could not update rank position. ${updateRankError.message}`);
+            }
+        }
+
+        const { error: updateDecisionError } = await supabaseClient
+            .from("current_applications")
+            .update({ offer_decision: decision })
+            .eq("id", applicationId)
+            .maybeSingle();
+
+        if (updateDecisionError) {
+            console.error("Offer Decision Error", updateDecisionError);
+            throw new Error(`Could not set offer decision. ${updateDecisionError.message}`);
+        }
+
+    } catch (error) {
+        showError(error.message || "An error occurred while setting the offer decision.");
     }
 }
 
@@ -557,11 +571,10 @@ function enableMessaging() {
 
 async function autoRejectIfInterviewNotGranted() {
     if (!calendarRecord || !calendarRecord.interview_period_start) return;
+    const today = new Date(2025, 10, 5);
     const interviewStart = new Date(calendarRecord.view_interviews_granted);
     if (today >= interviewStart) {
-        console.log("we got here");
         if (applicationRecord.status !== "interview") {
-            console.log("we got here");
             const { data, error } = await supabaseClient
                 .from("current_applications")
                 .update({ status: "not-selected" })
