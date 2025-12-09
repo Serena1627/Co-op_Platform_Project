@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details</title>
+    <script type="module" src="../supabaseClient.js"></script>
+    <script type="module" src="JobDetails.js"></script>
+    <title>Job Posts</title>
+    <link rel="stylesheet" href="../styles/JobDetails.css">
+    <link rel="stylesheet" href="../styles/Navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div id="navbar-container"></div>
+    <script>
+        fetch('../components/Navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(err => console.error('Navbar load error:', err));
+    </script>
+    <!-- Hero Section -->
+    <div class="job-hero">
+        <div class="hero-content">
+            <a href="#" class="back-link">← Back to Job Listings</a>
+            
+            <div class="hero-top">
+                <div class="hero-title">
+                    <h1 id="job-title">Software Engineering Co-op</h1>
+                    <div class="company-badge">
+                        <span>🏢</span>
+                        <span id="company-name">Tech Innovations Inc.</span>
+                    </div>
+                </div>
+                <button class="apply-button" id="apply-btn">Apply Now</button>
+            </div>
+
+            <div class="hero-meta">
+                <div class="meta-item">
+                    <div class="meta-icon">📍</div>
+                    <div>
+                        <div class="meta-value" id="location">Philadelphia, PA</div>
+                        <div class="meta-label">Location</div>
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-icon">💰</div>
+                    <div>
+                        <div class="meta-value" id="pay">$25.00/hr</div>
+                        <div class="meta-label">Hourly Rate</div>
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-icon">⏰</div>
+                    <div>
+                        <div class="meta-value" id="work-type">Full-time</div>
+                        <div class="meta-label">Schedule</div>
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-icon">⭐</div>
+                    <div>
+                        <div class="meta-value" id="rating">4.5</div>
+                        <div class="meta-label">Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <span class="stat-number" id="open-positions">5</span>
+                <span class="stat-label">Open Positions</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="applicants">23</span>
+                <span class="stat-label">Current Applicants</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="experience">Entry Level</span>
+                <span class="stat-label">Experience Required</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="gpa-req">3.0+</span>
+                <span class="stat-label">Minimum GPA</span>
+            </div>
+        </div>
+
+        <!-- Content Layout -->
+        <div class="content-layout">
+            <!-- Main Content -->
+            <div>
+                <div class="content-card">
+                    <h2>About This Position</h2>
+                    <div id="job-description">
+                        <p>We are seeking motivated software engineering co-op students to join our development team. You will work on real-world projects, collaborate with experienced engineers, and gain hands-on experience with modern technologies.</p>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h2>What You'll Need</h2>
+                    <div id="job-qualifications">
+                        <ul>
+                            <li>Currently pursuing a degree in Computer Science or related field</li>
+                            <li>Strong programming skills in Java, Python, or JavaScript</li>
+                            <li>Understanding of data structures and algorithms</li>
+                            <li>Excellent problem-solving and communication skills</li>
+                            <li>Ability to work collaboratively in a team environment</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="content-card" id="perks-section">
+                    <h2>Perks & Benefits</h2>
+                    <div class="perks-list" id="perks-list">
+                        <div class="perk">
+                            <div class="perk-icon">✓</div>
+                            <span>Competitive hourly rate with performance bonuses</span>
+                        </div>
+                        <div class="perk">
+                            <div class="perk-icon">✓</div>
+                            <span>Direct mentorship from senior engineers</span>
+                        </div>
+                        <div class="perk">
+                            <div class="perk-icon">✓</div>
+                            <span>Professional development and training opportunities</span>
+                        </div>
+                        <div class="perk">
+                            <div class="perk-icon">✓</div>
+                            <span>Flexible work arrangements and modern workspace</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <div class="sidebar-card">
+                    <h3>Requirements</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">US Citizenship</span>
+                            <span class="info-value" id="citizenship">Required</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Interview Format</span>
+                            <span class="info-value" id="interview-format">In-Person</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Transportation</span>
+                            <span class="info-value" id="transportation">Required</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">SCDC Calendar</span>
+                            <span class="info-value positive" id="scdc-calendar">Follows</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>Desired Majors</h3>
+                    <div class="tags-container" id="majors-list">
+                        <span class="tag">Computer Science</span>
+                        <span class="tag">Software Engineering</span>
+                        <span class="tag">Computer Engineering</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>Recruiter Contact</h3>
+                    <div class="info-row">
+                        <span class="info-label">Name</span>
+                        <span class="info-value" id="recruiter">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

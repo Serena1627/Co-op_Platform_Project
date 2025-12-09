@@ -1,7 +1,8 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getDate } from "../components/coop-information.js";
 const FORCE_ENABLE_MESSAGES = true;
 
-const currentDate = new Date().toISOString().split("T")[0];
+const currentDate = getDate().toISOString().split("T")[0];
 const queryParams = new URLSearchParams(window.location.search);
 const applicationId = queryParams.get("applicationId");
 const studentId = queryParams.get("studentId");
@@ -53,11 +54,6 @@ let coop_experience = null;
 let calendarRecord = null;
 let resumeFile = null;
 let resumeSignedUrl = null;
-
-function isBefore(dateStr) {
-    if (!dateStr) return false;
-    return new Date() < new Date(dateStr);
-}
 
 if (!applicationId || !studentId) {
     showError("Missing applicationId or studentId in URL.");
@@ -508,28 +504,48 @@ async function updateStatus(newStatus) {
 }
 
 
-async function updateOpenPositions(){
-    const { data: updatedData, error: updatedError} = await supabaseClient
-        .from("job_listings")
-        .update({ no_of_open_positions: applicationRecord.no_of_open_positions-1 })
-        .eq("id", jobRecord.id)
-        .select()
-        .maybeSingle();
-    if (!updatedData || updatedError) throw updatedError || new Error("Failed to update Open Positions.");
-    jobRecord.no_of_open_positions = jobRecord.no_of_open_positions - 1; 
-    openPositionsEl.innerText = jobRecord.no_of_open_positions;
-}
+async function setOfferDecision(decision) {
+    try {
+        if (decision === "ranked") {
+            const { data: rankedRow, error: rankedError } = await supabaseClient
+                .from("current_applications")
+                .select("rank_position")
+                .order("rank_position", { ascending: false })
+                .limit(1)
+                .single();
 
+            if (rankedError) {
+                console.error("Offer Decision Error", rankedError);
+                throw new Error(`Could not get previous rank position. ${rankedError.message}`);
+            }
 
-async function setOfferDecision(decision){
-    const { error } = await supabaseClient
-        .from("current_applications")
-        .update({ offer_decision: decision })
-        .eq("id", applicationId)
-        .maybeSingle();
-    if (error){
-        console.error("Offer Decision Error", error);
-        throw new Error(`Could not set offer decision. ${error.message}`);
+            const lastRank = rankedRow?.rank_position ?? 0;
+
+            const { error: updateRankError } = await supabaseClient
+                .from("current_applications")
+                .update({ rank_position: lastRank + 1 })
+                .eq("id", applicationId)
+                .maybeSingle();
+
+            if (updateRankError) {
+                console.error("Offer Decision Error", updateRankError);
+                throw new Error(`Could not update rank position. ${updateRankError.message}`);
+            }
+        }
+
+        const { error: updateDecisionError } = await supabaseClient
+            .from("current_applications")
+            .update({ offer_decision: decision })
+            .eq("id", applicationId)
+            .maybeSingle();
+
+        if (updateDecisionError) {
+            console.error("Offer Decision Error", updateDecisionError);
+            throw new Error(`Could not set offer decision. ${updateDecisionError.message}`);
+        }
+
+    } catch (error) {
+        showError(error.message || "An error occurred while setting the offer decision.");
     }
 }
 
