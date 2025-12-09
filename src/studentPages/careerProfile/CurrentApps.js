@@ -2,6 +2,8 @@ import { supabaseClient } from "../../supabaseClient.js";
 
 let selectedApplications = new Set();
 
+let currentDate = new Date();
+
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
     
@@ -571,13 +573,11 @@ async function calculateProgressTimeline(studentId) {
             rankings_due: new Date(round.rankings_due),
             results_available: new Date(round.results_available),
         }));
-
-        const today = new Date();
         let currentRound = null;
 
         for (let round of rounds) {
-            if (today >= round.job_postings_available &&
-                today <= round.results_available) {
+            if (currentDate >= round.job_postings_available &&
+                currentDate <= round.results_available) {
                 currentRound = round;
                 break;
             }
@@ -589,19 +589,28 @@ async function calculateProgressTimeline(studentId) {
 
         let stage = 1;
 
-        if (today >= currentRound.job_postings_available && today < currentRound.view_interviews_granted) {
+        if (currentDate >= currentRound.job_postings_available && currentDate < currentRound.view_interviews_granted) {
             stage = 1;
         }
-        else if (today >= currentRound.view_interviews_granted && today < currentRound.interview_period_end) {
+        else if (currentDate >= currentRound.view_interviews_granted && currentDate < currentRound.interview_period_end) {
             stage = 2;
+            const { data: pendingApplications } = await supabaseClient
+                .from("current_applications")
+                .select("id")
+                .eq("student_id", studentId)
+                .eq("status", "pending");
+
+            for (let app of pendingApplications) {
+                await updateApplicationStatus(app.id, stage);
+            }
         }
-        else if (today >= currentRound.interview_period_end && today < currentRound.rankings_due) {
+        else if (currentDate >= currentRound.interview_period_end && currentDate < currentRound.rankings_due) {
             stage = 3;
         }
-        else if (today >= currentRound.rankings_due && today < currentRound.results_available) {
+        else if (currentDate >= currentRound.rankings_due && currentDate < currentRound.results_available) {
             stage = 4;
         }
-        else if (today >= currentRound.results_available) {
+        else if (currentDate >= currentRound.results_available) {
             stage = 5;
         }
 
@@ -644,7 +653,8 @@ function createApplicationCard(application) {
     const statusMap = {
         'pending': { text: 'Application Pending', class: 'status-pending' },
         'submitted': { text: 'Submitted', class: 'status-submitted' },
-        'interview': { text: 'Interview Scheduled', class: 'status-interview' },
+        'in-review': { text: 'Application In Review', class: 'status-in-review' },
+        'interview': { text: 'Interview Requested', class: 'status-interview' },
         'offer': { text: 'Offer Received', class: 'status-offer' },
         'accepted': { text: 'Offer Accepted', class: 'status-accepted' },
         'rejected': { text: 'Not Selected', class: 'status-rejected' },
@@ -825,7 +835,7 @@ function filterApplications(filter) {
     });
 }
 
-function showNotification(message) {
+function showNotification(message){
     const notification = document.createElement("div");
     notification.className = "notification";
     notification.textContent = message;
@@ -840,10 +850,41 @@ function showNotification(message) {
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         z-index: 1000;
     `;
-    
+
     document.body.appendChild(notification);
     
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+async function updateApplicationStatus(applicationId, stage){
+    try {
+        let data = null;
+        if (stage === 2) {
+            const response = await supabaseClient
+                .from("current_applications")
+                .select("status")
+                .eq("id", applicationId)
+                .single();
+
+            if (response.error) throw response.error;
+
+            data = response.data;
+            const application_status = data.status;
+            const statusBadge = card.querySelector(".status-badge");
+                if (application_status === "interview") {
+                    statusBadge.textContent = "Interview Requested";
+                    statusBadge.className = "status-badge status-interview";
+                } else {
+                    statusBadge.textContent = "Not Selected";
+                    statusBadge.className = "status-badge status-rejected";
+                }
+                card.dataset.status = newStatus;
+        }
+        return data;
+    } catch (error){
+        console.error("Error updating application status:", error);
+        throw error;
+    }
 }

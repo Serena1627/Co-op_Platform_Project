@@ -9,7 +9,53 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    const { data, error } = await supabaseClient
+    const { data: studentData, error: studentError } = await supabaseClient
+        .from("student_profile")
+        .select("coop_cycle")
+        .eq("student_id", user.id)
+
+    if (studentError) {
+        console.error("Error loading student profile:", studentError);
+        return;
+    }
+
+    const student_coop_cycle = studentData[0].coop_cycle;
+    const { data: coopData, error: coopError } = await supabaseClient
+        .from("coop_calendar")
+        .select("job_postings_available, interview_requests_due")
+        .eq("coop_cycle", student_coop_cycle)
+
+    if (coopError) {
+        console.error("Error loading coop calendar:", coopError);
+        return;
+    }
+    let applicationDeadline = null
+    const today = new Date();
+
+    const banner = document.getElementById('application-status-banner');
+    for (const round in coopData){
+        const jobPostingsAvailable = new Date(coopData[round].job_postings_available);
+        const interviewRequestsDue = new Date(coopData[round].interview_requests_due);
+        if (today >= jobPostingsAvailable && today <= interviewRequestsDue){
+            applicationDeadline = interviewRequestsDue;
+            break;
+        }
+    }
+    if (!applicationDeadline){
+            banner.className = 'status-banner closed';
+            banner.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        Sorry, you are not within the application period for this cycle.
+    `;
+    }
+    else {
+        banner.className = 'status-banner open';
+        const daysLeft = Math.ceil((applicationDeadline - today) / (1000 * 60 * 60 * 24));
+        banner.innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        Application window closes in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.
+        `;
+        const { data, error } = await supabaseClient
         .from("job_listings")
         .select(`
             id,
@@ -65,6 +111,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     addCustomFilterControls(table);
+    }
 });
 
 async function applyToJob(jobData, cell, studentId) {
@@ -108,7 +155,9 @@ async function applyToJob(jobData, cell, studentId) {
         button.disabled = false;
         button.innerHTML = "+";
     }
-}
+    }
+
+
 
 function showNotification(message) {
     const notification = document.createElement("div");
