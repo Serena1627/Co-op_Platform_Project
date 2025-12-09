@@ -7,6 +7,14 @@ function getJobIdFromURL() {
 
 document.addEventListener("DOMContentLoaded", async () => {
     const jobId = getJobIdFromURL();
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get("source");
+
+    const backLink = document.querySelector(".back-link");
+    if (source === "applications") {
+        backLink.href = "./careerProfile/CurrentApps.html";
+        backLink.innerHTML = "← Back to Current Applications";
+    }
 
     const { data, error } = await supabaseClient
         .from("job_listings")
@@ -95,13 +103,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     // -----------------------------
     // RECRUITER
     // -----------------------------
-    document.getElementById("recruiter").textContent = jobData.recruiter || "N/A";
+    if (source === "applications") {
+        const { data: userData } = await supabaseClient.auth.getUser();
+        const user = userData?.user;
+        
+        if (user) {
+            const { data: applicationData, error: appError } = await supabaseClient
+                .from("current_applications")
+                .select("status")
+                .eq("student_id", user.id)
+                .eq("job_id", jobId)
+                .single();
+            
+            if (!appError && applicationData && applicationData.status === "interview") {
+                const recruiterSection = document.getElementById("recruiter-section");
+                recruiterSection.style.display = "block";
+                
+                document.getElementById("contact-name").textContent = jobData.contact_name || "N/A";
+                document.getElementById("contact-email").textContent = jobData.contact_email || "N/A";
+        
+                if (jobData.allow_messaging) {
+                    const messageBtn = document.getElementById("message-recruiter-btn");
+                    messageBtn.style.display = "block";
+                    
+                    messageBtn.addEventListener("click", () => {
+                        window.location.assign(
+                            `../messaging/StudentMessages.html?recruiterId=${jobData.recruiter_id}&applicationId=${urlParams.get("applicationId")}`
+                        );
+                    });
+                }
+            }
+        } else {
+            console.log("No user logged in.");
+        }
+    }
 
     // -----------------------------
     // APPLY BUTTON
     // -----------------------------
     const applyBtn = document.getElementById("apply-btn");
-
+    applyBtn.style.display = source === "applications" ? "none" : "inline-block";
+    
     if (!applyBtn) {
         console.error("Apply button not found in DOM.");
     } else {

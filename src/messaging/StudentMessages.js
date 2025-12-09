@@ -75,10 +75,16 @@ async function loadRecruitersAndJobs() {
   });
 }
 
-
-async function startConversation() {
-  const appId = recruiterSelect.value;
-  const recruiterId = recruiterSelect.selectedOptions[0]?.dataset?.recruiterId;
+async function startConversation(applicationId = null, recruiter = null) {
+  let appId, recruiterId;
+  if (!applicationId || !recruiter) {
+    appId = recruiterSelect.value;
+    recruiterId = recruiterSelect.selectedOptions[0]?.dataset?.recruiterId;
+  } else {
+    appId = applicationId;
+    recruiterId = recruiter;
+  }
+  
   const studentId = await getUserId();
   if (!studentId || !appId || !recruiterId) {
     alert("Please select a recruiter/job first.");
@@ -342,6 +348,21 @@ async function init() {
   await loadRecruitersAndJobs();
   await loadConversations();
   subscribeRealtime();
+  const urlParams = new URLSearchParams(window.location.search);
+  const recruiterId = urlParams.get("recruiterId");
+  const applicationId = urlParams.get("applicationId");
+
+  if (recruiterId && applicationId) {
+    const conv = conversations.find(c => c.application_id.toString() === applicationId);
+    if (conv) {
+      currentConversation = conv;
+      highlightConversation(conv.id);
+      await loadMessages(conv.id);
+    } else {
+      recruiterSelect.value = applicationId;
+      await startConversation(applicationId, recruiterId);
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

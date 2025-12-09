@@ -55,11 +55,13 @@ async function loadJobData(jobId) {
         document.getElementById('is_range').checked = data.is_range || false;
         document.getElementById('no_of_open_positions').value = data.no_of_open_positions || '';
         document.getElementById('is_full_time').checked = data.is_full_time || false;
-        document.getElementById('job_rating').value = data.job_rating || '';
         document.getElementById('requires_in_person_interviews').checked = data.requires_in_person_interviews || false;
         document.getElementById('requires_transportation').checked = data.requires_transportation || false;
         document.getElementById('follows_scdc_calendar').checked = data.follows_scdc_calendar || false;
         document.getElementById('perks').value = data.perks || '';
+        document.getElementById('contact_email').value = data.contact_email || '';
+        document.getElementById('allow_messaging').checked = data.allow_messaging || false;
+        document.getElementById('contact_name').value = data.contact_name || '';
     } catch (error) {
         console.error('Error loading job data:', error);
         alert('Error loading job data. Check console for details.');
@@ -96,7 +98,10 @@ async function saveJobPosting(event) {
         requires_in_person_interviews: document.getElementById('requires_in_person_interviews').checked,
         requires_transportation: document.getElementById('requires_transportation').checked,
         follows_scdc_calendar: document.getElementById('follows_scdc_calendar').checked,
-        perks: document.getElementById('perks').value || null
+        perks: document.getElementById('perks').value || null,
+        contact_email: document.getElementById('contact_email').value || null,
+        allow_messaging: document.getElementById('allow_messaging').checked,
+        contact_name: document.getElementById('contact_name').value || null,
     };
 
     try {
