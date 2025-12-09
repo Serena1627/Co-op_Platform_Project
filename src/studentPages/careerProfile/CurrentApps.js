@@ -751,6 +751,16 @@ function createApplicationCard(application) {
         });
     }
 
+    card.addEventListener("click", (e) => {
+        if (e.target.tagName === 'BUTTON' || 
+            e.target.closest('button') || 
+            e.target.tagName === 'INPUT') {
+            return;
+        }
+        
+        window.location.href = `../JobDetails.html?jobId=${job.id}&applicationId=${application.id}&source=applications`;
+    });
+
     const withdrawBtn = card.querySelector(".withdraw-btn");
     withdrawBtn.addEventListener("click", () => withdrawApplication(application.id, card));
 

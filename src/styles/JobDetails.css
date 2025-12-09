@@ -18,7 +18,7 @@ body {
 
 /* Hero Banner */
 .job-hero {
-    background: linear-gradient(135deg, #07294d 0%, #0a3d6b 50%, #0d4d8f 100%);
+    background: linear-gradient(135deg, #5568d3 0%, #667eea 50%, #764ba2 100%);
     color: white;
     padding: 60px 40px;
     margin: 0 0 40px 0;
@@ -33,7 +33,7 @@ body {
     right: 0;
     width: 50%;
     height: 100%;
-    background: radial-gradient(circle at top right, rgba(255, 198, 0, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle at top right, rgba(118, 75, 162, 0.15) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -89,8 +89,8 @@ body {
 }
 
 .apply-button {
-    background: #ffc600;
-    color: #07294d;
+    background: white;
+    color: #667eea;
     border: none;
     padding: 16px 40px;
     border-radius: 8px;
@@ -98,14 +98,14 @@ body {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(255, 198, 0, 0.3);
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
     white-space: nowrap;
 }
 
 .apply-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 198, 0, 0.4);
-    background: #ffd633;
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+    background: #f8f9fa;
 }
 
 .hero-meta {
@@ -167,7 +167,7 @@ body {
 .stat-number {
     font-size: 32px;
     font-weight: 700;
-    color: #07294d;
+    color: #667eea;
     margin-bottom: 8px;
     display: block;
 }
@@ -254,7 +254,7 @@ body {
     content: '';
     width: 4px;
     height: 20px;
-    background: #ffc600;
+    background: #667eea;
     border-radius: 2px;
 }
 
@@ -293,8 +293,11 @@ body {
     border-radius: 6px;
 }
 
-.info-value.negative {
-    color: #e53e3e;
+.info-value.positive {
+    color: #667eea;
+    background: #f0f4ff;
+    padding: 4px 12px;
+    border-radius: 6px;
 }
 
 /* Majors Tags */
@@ -305,13 +308,13 @@ body {
 }
 
 .tag {
-    background: linear-gradient(135deg, #f0f7ff 0%, #e0effe 100%);
-    color: #07294d;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+    color: #667eea;
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
-    border: 1px solid #c3dafe;
+    border: 1px solid #d0dbff;
 }
 
 /* Perks List */
@@ -336,7 +339,7 @@ body {
 .perk-icon {
     width: 24px;
     height: 24px;
-    background: linear-gradient(135deg, #07294d 0%, #0a3d6b 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -361,6 +364,31 @@ body {
     font-size: 18px;
     font-weight: 700;
     color: #1a202c;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* Responsive */

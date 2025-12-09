@@ -14,7 +14,6 @@ const chatJobTitle = document.getElementById("chat-job-title");
 const chatMeta = document.getElementById("chat-meta");
 const filterJobs = document.getElementById("filter-jobs");
 
-
 let currentConversation = null;
 let conversations = [];
 let interviewApps = [];
