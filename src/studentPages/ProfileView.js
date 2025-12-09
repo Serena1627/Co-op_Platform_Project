@@ -1,4 +1,4 @@
-import { supabaseClient } from "../../supabaseClient.js";
+import { supabaseClient } from "../supabaseClient.js";
 
 
 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -25,5 +25,9 @@ async function loadProfile() {
     document.getElementById("gpa").textContent = data.gpa;
     document.getElementById("coop_cycle").textContent = data.coop_cycle;
 }
+
+document.querySelector(".edit-btn").addEventListener("click", function() {
+    window.location.assign("StudentProfileForm.html?edit=true");
+});
 
 loadProfile();

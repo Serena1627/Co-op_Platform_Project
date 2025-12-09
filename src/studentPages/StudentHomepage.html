@@ -12,11 +12,12 @@
 <body>
     <div id="navbar-container"></div>
     <script>
-        fetch('../components/Navbar.html')
+    fetch('../components/Navbar.html')
         .then(response => response.text())
         .then(data => {
             document.getElementById('navbar-container').innerHTML = data;
-        });
+        })
+        .catch(err => console.error('Navbar load error:', err));
     </script>
     </br>
     <div id="intro-section">
