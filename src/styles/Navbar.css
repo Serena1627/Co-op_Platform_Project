@@ -1,69 +1,19 @@
-
-#top-bar {
-    background-color: #ffffff;
-    padding: 10px 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-}
-
-.nav-menu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
-.nav-menu li {
-    position: relative;
-}
-
+/* Links & dropdown buttons as text only */
 .nav-menu a, .nav-menu .dropbtn {
     text-decoration: none;
-    color: black;
+    color: #ffffff;           /* text color white */
     font-size: 18px;
-    padding: 8px 12px;
+    padding: 0;               /* remove padding */
     display: inline-block;
     cursor: pointer;
+    transition: color 0.3s ease;
+    background: none;         /* remove any background */
+    border: none;             /* remove borders */
 }
 
+/* Hover effect */
 .nav-menu a:hover, .nav-menu .dropbtn:hover {
-    background-color: #f0f0f0;
-    border-radius: 5px;
-}
-
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: white;
-    min-width: 180px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    z-index: 100;
-}
-
-.dropdown-content li a {
-    display: block;
-    padding: 10px 15px;
-    color: black;
-}
-
-.dropdown-content li a:hover {
-    background-color: #e0e0e0;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.far.fa-user-circle {
-    font-size: 25px;
+    color: #e0e8f8;           /* change text color on hover */
+    background: none;         /* ensure no background appears */
+    border-radius: 0;         /* remove rounded corners */
 }
