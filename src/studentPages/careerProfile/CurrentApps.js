@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupAppFilters();
     await loadApplications(user.id);
     await calculateProgressTimeline(user.id);
+    
 });
 
 async function loadApplications(studentId) {
@@ -599,11 +600,11 @@ async function calculateProgressTimeline(studentId) {
                 .from("current_applications")
                 .select("id")
                 .eq("student_id", studentId)
-                .eq("status", "submitted");
 
             for (let app of pendingApplications) {
                 await updateApplicationStatus(app.id, stage);
             }
+            reapplyCurrentFilter();
         }
         else if (currentDate >= currentRound.interview_period_end && currentDate < currentRound.rankings_due) {
             stage = 3;
@@ -611,11 +612,12 @@ async function calculateProgressTimeline(studentId) {
                 .from("current_applications")
                 .select("id")
                 .eq("student_id", studentId)
-                .eq("status", "interview"); 
 
             for (let app of interviewApplications) {
                 await updateApplicationStatus(app.id, stage);
             }
+
+            reapplyCurrentFilter();
             
             showRankingMode(studentId);
         }
@@ -625,12 +627,36 @@ async function calculateProgressTimeline(studentId) {
         }
         else if (currentDate >= currentRound.results_available) {
             stage = 5;
+            const { data: interviewApplications } = await supabaseClient
+                .from("current_applications")
+                .select("id")
+                .eq("student_id", studentId)
+
+            for (let app of interviewApplications) {
+                await updateApplicationStatus(app.id, stage);
+            }
+
+            reapplyCurrentFilter();
         }
 
         setProgressBar(stage);
 
     } catch (error) {
         alert(`Error generating Coop Timeline: ${error.message}`);
+    }
+}
+
+
+function reapplyCurrentFilter() {
+    // Get the currently active tab
+    const activeTab = document.querySelector("#app-filters .tab.active");
+    
+    if (activeTab) {
+        const filter = activeTab.textContent.trim().toLowerCase();
+        filterApplications(filter);
+    } else {
+        // Default to "all" if no tab is active
+        filterApplications("all");
     }
 }
 
@@ -903,6 +929,10 @@ async function updateApplicationStatus(applicationId, stage){
                     statusBadge.textContent = "Interview Requested";
                     statusBadge.className = "status-badge status-interview";
                 } else {
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "not_selected" })
+                        .eq("id", applicationId);
                     statusBadge.textContent = "Not Selected";
                     statusBadge.className = "status-badge status-rejected";
                 }
@@ -910,7 +940,6 @@ async function updateApplicationStatus(applicationId, stage){
             }
             
             else if (stage === 3) {
-                console.log("we are here in stage 3");
                 if (application_status === "offer") {
                     statusBadge.textContent = "Offer Received";
                     statusBadge.className = "status-badge status-offer";
@@ -920,10 +949,31 @@ async function updateApplicationStatus(applicationId, stage){
                     statusBadge.className = "status-badge status-ranked";
                 }
                 else {
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "not_selected" })
+                        .eq("id", applicationId);
                     statusBadge.textContent = "Not Selected";
                     statusBadge.className = "status-badge status-rejected";
                 }
                 card.dataset.status = application_status;
+            }
+
+            if (stage === 5){
+                if (application_status === "offer") {
+                    statusBadge.textContent = "Offer Received";
+                    statusBadge.className = "status-badge status-offer";
+                }
+                else {
+                    await supabaseClient
+                        .from("current_applications")
+                        .update({ status: "not_selected" })
+                        .eq("id", applicationId);
+                    statusBadge.textContent = "Not Selected";
+                    statusBadge.className = "status-badge status-rejected";
+                }
+                card.dataset.status = application_status;
+
             }
         } else {
             console.log(`Card not found for application ${applicationId}`);
