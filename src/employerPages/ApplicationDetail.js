@@ -233,7 +233,7 @@ function applyCoopCalendarGating(){
     if (currentDate <= interviews_start){
         btnOffer.remove();
         btnRanked.remove();
-    }else if (currentDate <= ranking_period_end){
+    } else if (currentDate >= ranking_period_start){
         btnInReview.remove();
         btnInterview.remove();
     }
@@ -555,7 +555,7 @@ function enableMessaging() {
 
 async function autoRejectIfInterviewNotGranted() {
     if (!calendarRecord || !calendarRecord.interview_period_start) return;
-    const today = new Date();
+    const today = new Date(2025, 10, 5);
     const interviewStart = new Date(calendarRecord.view_interviews_granted);
     if (today >= interviewStart) {
         if (applicationRecord.status !== "interview") {
