@@ -1,19 +1,17 @@
-/* Links & dropdown buttons as text only */
 .nav-menu a, .nav-menu .dropbtn {
     text-decoration: none;
-    color: #ffffff;           /* text color white */
+    color: #ffffff;
     font-size: 18px;
-    padding: 0;               /* remove padding */
+    padding: 0;
     display: inline-block;
     cursor: pointer;
     transition: color 0.3s ease;
-    background: none;         /* remove any background */
-    border: none;             /* remove borders */
+    background: none;
+    border: none;
 }
 
-/* Hover effect */
 .nav-menu a:hover, .nav-menu .dropbtn:hover {
-    color: #e0e8f8;           /* change text color on hover */
-    background: none;         /* ensure no background appears */
-    border-radius: 0;         /* remove rounded corners */
+    color: #e0e8f8;
+    background: none;
+    border-radius: 0;
 }

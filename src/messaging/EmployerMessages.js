@@ -163,7 +163,6 @@ async function loadConversations() {
   }
 
   const convLoading = document.getElementById("conversations-loading");
-  //convLoading.style.display = "block";
   conversationsList.style.opacity = "0.3";
 
   const recruiterId = await getUserId();
