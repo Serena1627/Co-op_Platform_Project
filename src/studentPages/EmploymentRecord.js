@@ -59,7 +59,7 @@ class ReviewManager {
         .select("*")
         .eq("student_id", this.studentId)
         .eq("job_id", this.jobId)
-        .maybeSingle(); // Use maybeSingle instead of single
+        .maybeSingle();
 
       if (error) {
         console.error("Error loading review:", error);
@@ -85,14 +85,12 @@ class ReviewManager {
           formData.get("opportunities_improvement") || "",
       };
 
-      // Add rating values
       reviewQuestions.forEach((q) => {
         const value = formData.get(q.name);
         payload[q.name] = value ? parseInt(value) : null;
       });
 
       if (this.review?.id) {
-        // Update existing review
         const { error } = await supabaseClient
           .from("student_reviews")
           .update(payload)
@@ -102,7 +100,6 @@ class ReviewManager {
         this.review = { ...this.review, ...payload };
         return true;
       } else {
-        // Create new review
         const { data, error } = await supabaseClient
           .from("student_reviews")
           .insert(payload)
@@ -185,7 +182,6 @@ function createRatingInput(name, label, value = null, readOnly = false) {
     option.className = "rating-option";
     if (readOnly) option.classList.add("readonly");
 
-    // Check if this option should be selected
     const isSelected = value !== null && (value === i || value === String(i));
     if (isSelected) {
       option.classList.add("active");
@@ -210,11 +206,9 @@ function createRatingInput(name, label, value = null, readOnly = false) {
 
     if (!readOnly) {
       input.addEventListener("change", (e) => {
-        // Remove active class from all options in this group
         scale.querySelectorAll(".rating-option").forEach((opt) => {
           opt.classList.remove("active");
         });
-        // Add active class to selected option
         option.classList.add("active");
       });
     }
@@ -311,22 +305,20 @@ async function setupReviewTab(tabElement, application, job) {
     }
 
     if (reviewManager.review && reviewManager.isSubmitted()) {
-      // Show completed review - use the FORM view but make it read-only
       statusText.textContent = "Review completed.";
-      display.hidden = true; // Hide the text display
-      form.hidden = false; // Show the form (read-only)
-      reviewActions.hidden = true; // Hide edit button completely
+      display.hidden = true;
+      form.hidden = false;
+      reviewActions.hidden = true;
       if (cancelEditBtn) cancelEditBtn.hidden = true;
 
-      // Render form in read-only mode
       renderReviewForm(tabElement, reviewManager.review, true);
 
-      // Populate text fields as read-only
       const highlights = form.querySelector("#highlights");
       const improvements = form.querySelector("#improvements");
       if (highlights) {
         highlights.value = reviewManager.review.highlights_experience || "";
         highlights.readOnly = true;
+        highlights.removeAttribute('required');
         highlights.style.backgroundColor = "#f8f9fa";
         highlights.style.cursor = "not-allowed";
       }
@@ -334,25 +326,22 @@ async function setupReviewTab(tabElement, application, job) {
         improvements.value =
           reviewManager.review.opportunities_improvement || "";
         improvements.readOnly = true;
+        improvements.removeAttribute('required');
         improvements.style.backgroundColor = "#f8f9fa";
         improvements.style.cursor = "not-allowed";
       }
 
-      // Hide the submit button
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.hidden = true;
 
-      // Add a class to dim the entire form
       form.classList.add("readonly-form");
     } else if (reviewManager.review && !reviewManager.isSubmitted()) {
-      // Show draft review
       statusText.textContent = "Draft review (not submitted)";
       display.hidden = true;
       form.hidden = false;
       reviewActions.hidden = true;
       if (cancelEditBtn) cancelEditBtn.hidden = true;
 
-      // Remove readonly class if it exists
       form.classList.remove("readonly-form");
 
       renderReviewForm(tabElement, reviewManager.review, false);
@@ -361,6 +350,7 @@ async function setupReviewTab(tabElement, application, job) {
       if (highlights) {
         highlights.value = reviewManager.review.highlights_experience || "";
         highlights.readOnly = false;
+        highlights.required = true;
         highlights.style.backgroundColor = "";
         highlights.style.cursor = "";
       }
@@ -368,46 +358,44 @@ async function setupReviewTab(tabElement, application, job) {
         improvements.value =
           reviewManager.review.opportunities_improvement || "";
         improvements.readOnly = false;
+        improvements.required = true;
         improvements.style.backgroundColor = "";
         improvements.style.cursor = "";
       }
 
-      // Show submit button
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.hidden = false;
     } else {
-      // New review
       statusText.textContent = "Please complete your review.";
       display.hidden = true;
       form.hidden = false;
       reviewActions.hidden = true;
       if (cancelEditBtn) cancelEditBtn.hidden = true;
 
-      // Remove readonly class if it exists
       form.classList.remove("readonly-form");
 
       renderReviewForm(tabElement, null, false);
+      const highlights = form.querySelector("#highlights");
+      const improvements = form.querySelector("#improvements");
+      if (highlights) highlights.required = true;
+      if (improvements) improvements.required = true;
 
-      // Show submit button
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.hidden = false;
     }
 
-    // Handle form submission (only for non-submitted reviews)
     if (!reviewManager.isSubmitted()) {
       form.onsubmit = async (e) => {
         e.preventDefault();
 
         const success = await reviewManager.save(new FormData(form));
         if (success) {
-          // Reload the review tab
           await setupReviewTab(tabElement, application, job);
         } else {
           alert("Failed to save review. Please try again.");
         }
       };
     } else {
-      // Prevent form submission for completed reviews
       form.onsubmit = (e) => {
         e.preventDefault();
         return false;
@@ -423,7 +411,6 @@ function createRecordNode(application, job, recruiter) {
   const article = clone.querySelector(".job-card");
   article.dataset.jobId = job?.id || "";
 
-  // Set basic info
   const logo = article.querySelector(".logo");
   if (logo) {
     const initials = (recruiter?.company_name || job?.job_title || "Co-op")
@@ -435,7 +422,6 @@ function createRecordNode(application, job, recruiter) {
     logo.textContent = initials;
   }
 
-  // Set text content for various elements
   const textMappings = [
     { selector: ".job-title", value: job?.job_title || "Untitled role" },
     {
@@ -474,7 +460,6 @@ function createRecordNode(application, job, recruiter) {
     if (el) setText(el, mapping.value);
   });
 
-  // Set recruiter info
   const recruiterName = article.querySelector(".recruiter-name");
   const recruiterCompany = article.querySelector(".recruiter-company");
   const recruiterEmail = article.querySelector(".recruiter-email");
@@ -497,7 +482,6 @@ function createRecordNode(application, job, recruiter) {
     setText(recruiterEmail, "Email not provided");
   }
 
-  // Term and dates
   const termAndDates = article.querySelector(".term-and-dates");
   if (termAndDates) {
     const termText = [
@@ -513,7 +497,6 @@ function createRecordNode(application, job, recruiter) {
     setText(termAndDates, termText);
   }
 
-  // Setup expand button
   const expandBtn = article.querySelector(".expand-btn");
   const body = article.querySelector(".card-body");
   if (expandBtn && body) {
@@ -525,7 +508,6 @@ function createRecordNode(application, job, recruiter) {
     };
   }
 
-  // Setup tabs
   const tabBtns = article.querySelectorAll(".tab-btn");
   const tabContents = article.querySelectorAll(".tab-content");
 
@@ -533,20 +515,16 @@ function createRecordNode(application, job, recruiter) {
     btn.onclick = () => {
       const tab = btn.dataset.tab;
 
-      // Update tab buttons
       tabBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
-      // Update tab content visibility
       tabContents.forEach((content) => {
         content.hidden = !content.classList.contains(`tab-${tab}`);
       });
 
-      // If switching to review tab, initialize it
       if (tab === "student-review") {
         const reviewTab = article.querySelector(".tab-student-review");
         if (reviewTab) {
-          // Use setTimeout to ensure the tab is visible before initializing
           setTimeout(() => {
             setupReviewTab(reviewTab, application, job);
           }, 100);
@@ -572,7 +550,6 @@ async function loadEmploymentRecords() {
     const user = userData.user;
     userStatusEl.textContent = `Signed in as ${user.email}`;
 
-    // First try with join
     const { data: applications, error: appsErr } = await supabaseClient
       .from("current_applications")
       .select("*, job_listings(*)")
@@ -600,7 +577,6 @@ async function loadEmploymentRecords() {
     for (const app of applications) {
       const job = app.job_listings || {};
 
-      // Get recruiter info if available
       let recruiter = null;
       if (job.company_id) {
         try {
@@ -628,7 +604,6 @@ async function loadEmploymentRecords() {
   }
 }
 
-// Initialize when DOM is loaded
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", loadEmploymentRecords);
 } else {
