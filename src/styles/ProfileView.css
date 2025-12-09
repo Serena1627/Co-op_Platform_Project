@@ -91,3 +91,8 @@ h1 {
 .edit-icon {
     margin-right: 5px;
 }
+
+a:link, a:visited, a:hover, a:active {
+  color: white;
+  text-decoration: none;
+}
