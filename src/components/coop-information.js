@@ -1,6 +1,32 @@
 import { supabaseClient } from "../supabaseClient.js";
 
-let centralDate = null;
+let centralDate = loadDateFromStorage();
+
+function loadDateFromStorage() {
+    const saved = localStorage.getItem("centralDate");
+    return saved ? new Date(saved) : null;
+}
+
+function saveDateToStorage(date) {
+    if (!date) {
+        localStorage.removeItem("centralDate");
+    } else {
+        localStorage.setItem("centralDate", date.toISOString());
+    }
+}
+
+export function setDate(date = null) {
+    if (date === null) {
+        centralDate = new Date();
+    } else {
+        centralDate = new Date(date);
+    }
+    saveDateToStorage(centralDate);
+}
+
+export function getDate() {
+    return centralDate || new Date();
+}
 
 export async function getCurrentCoopInformation(coopCycle, today) {
     const coopCalendar = await parseCalendar(coopCycle);
@@ -119,17 +145,4 @@ async function parseCalendar(coop_cycle) {
 function isBetween(date, start, end) {
     if (!start || !end) return false;
     return date >= start && date <= end;
-}
-
-export function setDate(date= null){
-    if (date === null){
-        centralDate = new Date();
-        return;
-    }
-    centralDate = new Date(date);
-}
-
-export function getDate(){
-    if (!centralDate) return new Date();
-    return centralDate;
 }
