@@ -1,17 +1,69 @@
+
+#top-bar {
+    background-color: #ffffff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.nav-menu li {
+    position: relative;
+}
+
 .nav-menu a, .nav-menu .dropbtn {
     text-decoration: none;
-    color: #ffffff;
+    color: black;
     font-size: 18px;
-    padding: 0;
+    padding: 8px 12px;
     display: inline-block;
     cursor: pointer;
-    transition: color 0.3s ease;
-    background: none;
-    border: none;
 }
 
 .nav-menu a:hover, .nav-menu .dropbtn:hover {
-    color: #e0e8f8;
-    background: none;
-    border-radius: 0;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    min-width: 180px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    z-index: 100;
+}
+
+.dropdown-content li a {
+    display: block;
+    padding: 10px 15px;
+    color: black;
+}
+
+.dropdown-content li a:hover {
+    background-color: #e0e0e0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.far.fa-user-circle {
+    font-size: 25px;
 }
