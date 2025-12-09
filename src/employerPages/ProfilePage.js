@@ -10,40 +10,56 @@ if (!user) {
 
 async function loadProfile() {
     const { data, error } = await supabaseClient
-        .from("companies")
-        .select("*")
-        .overlaps("associates", [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
-        .maybeSingle();
+        .from("recruiters")
+        .select(`
+            id,
+            first_name,
+            last_name,
+            company_id,
+            companies:company_id (
+                id,
+                company_name,
+                company_type,
+                rating,
+                primary_contact,
+                recruiters:recruiters (
+                    id,
+                    first_name,
+                    last_name
+                )
+            )
+        `)
+        .eq("id", user.id)
+        .single();
 
     if (error) {
         console.error("Error loading profile:", error);
-        alert("Failed to load employer profile.");
+        alert(`Failed to load profile. ${user.id}`);
         return;
     }
 
-    const mainPageLink = document.getElementById('main-page-link');
-    if (mainPageLink) {
-        mainPageLink.href = `JobPosts.html?company_id=${data.id}`;
-    }
-
-
+    const company = data.companies;
+    const associates = company.recruiters;
 
     document.getElementById("first_name").textContent = user.user_metadata.firstName;
     document.getElementById("last_name").textContent = user.user_metadata.lastName;
     document.getElementById("email_address").textContent = user.email;
-    document.getElementById("company_name").textContent = data.company_name;
-    document.getElementById("company_type").textContent = data.company_type ?? "N/a";
-    document.getElementById("company_rating").textContent = data.company_rating ?? "Not yet Established";
-    document.getElementById("primary_contact").textContent = data.primary_contact == user.id ? "True" : "False";
+
+    document.getElementById("company_name").textContent = company.company_name;
+    document.getElementById("company_type").textContent = company.company_type ?? "N/a";
+    document.getElementById("company_rating").textContent = company.rating ?? "Not yet Established";
+    document.getElementById("primary_contact").textContent = company.primary_contact == user.id ? "True" : "False";
+
+    document.getElementById("main-page-link").href =
+        `JobPosts.html?company_id=${company.id}`;
 
     let associatesList = document.createElement("ul");
-    for (let name of data.associates){
+    for (let recruiter of associates) {
         const li = document.createElement("li");
-        li.textContent = name;
+        li.textContent = `${recruiter.first_name} ${recruiter.last_name}`;
         associatesList.appendChild(li);
     }
 
     document.getElementById("company_associates").appendChild(associatesList);
 }
-
 loadProfile();
