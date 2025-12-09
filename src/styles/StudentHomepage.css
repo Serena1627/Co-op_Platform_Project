@@ -1,21 +1,18 @@
-/* Global Styles */
 body {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: #f5f7fa;
     color: #2d3748;
-    padding-bottom: 80px; /* Space for fixed footer */
+    padding-bottom: 80px;
 }
 
-/* Main Container */
 .page-wrapper {
     max-width: 1400px;
     margin: 0 auto;
     padding: 100px 40px 60px 40px;
 }
 
-/* Hero Section - Welcome */
 #intro-section {
     text-align: center;
     margin-bottom: 60px;
@@ -50,7 +47,6 @@ body {
     max-width: 900px;
 }
 
-/* Co-op Status Section - Fixed Footer */
 #co-op-status {
     position: fixed;
     bottom: 0;
@@ -108,7 +104,6 @@ body {
     color: #ffc600;
 }
 
-/* Alerts Section */
 #alerts {
     background: white;
     padding: 40px;
@@ -194,7 +189,6 @@ body {
     box-shadow: 0 3px 12px rgba(229, 62, 62, 0.2);
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
     #intro-section {
         margin-bottom: 50px;
