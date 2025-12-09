@@ -1,7 +1,8 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getDate } from "../components/coop-information.js";
 const FORCE_ENABLE_MESSAGES = true;
 
-const currentDate = new Date().toISOString().split("T")[0];
+const currentDate = getDate().toISOString().split("T")[0];
 const queryParams = new URLSearchParams(window.location.search);
 const applicationId = queryParams.get("applicationId");
 const studentId = queryParams.get("studentId");
@@ -53,11 +54,6 @@ let coop_experience = null;
 let calendarRecord = null;
 let resumeFile = null;
 let resumeSignedUrl = null;
-
-function isBefore(dateStr) {
-    if (!dateStr) return false;
-    return new Date() < new Date(dateStr);
-}
 
 if (!applicationId || !studentId) {
     showError("Missing applicationId or studentId in URL.");

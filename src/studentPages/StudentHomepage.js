@@ -1,5 +1,5 @@
 import { supabaseClient } from "../supabaseClient.js";
-import { getCurrentCoopInformation } from "../components/coop-information.js";
+import { getCurrentCoopInformation, getDate } from "../components/coop-information.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data, error } = await supabaseClient.auth.getUser();
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    const today = new Date();
+    const today = getDate();
     const currentCoopInformation = await getCurrentCoopInformation(profile.coop_cycle, today);
 
     const alertsDiv = document.getElementById('alerts');
