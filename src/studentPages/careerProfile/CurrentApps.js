@@ -1,9 +1,9 @@
 import { supabaseClient } from "../../supabaseClient.js";
+import { getDate } from "../../components/coop-information.js";
 
 let selectedApplications = new Set();
 
-let currentDate = new Date(2025, 10, 11);
-console.log("current date:" + currentDate);
+let currentDate = new Date();
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();

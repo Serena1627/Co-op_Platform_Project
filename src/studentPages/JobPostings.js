@@ -68,49 +68,57 @@ document.addEventListener("DOMContentLoaded", async () => {
             )
         `);
 
-    if (error) {
-        console.error("Error loading jobs:", error);
-        return;
-    }
+        if (error) {
+            console.error("Error loading jobs:", error);
+            return;
+        }
 
-    data.forEach(row => {
-        row.company_name = row.company?.company_name || "";
-        row.company_rating = row.company?.rating ?? null;
-        row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : null;
-    });
+        data.forEach(row => {
+            row.company_name = row.company?.company_name || "";
+            row.company_rating = row.company?.rating ?? "Rating not established";
+            row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : "Unpaid";
+        });
 
-    const table = new Tabulator("#student-jobs", {
-        data: data,
-        layout:"fitColumns",
-        height: "auto",
-        columns: [
-            { title:"Company Name", field:"company_name" },
-            { title:"Job Title", field:"job_title" },
-            { title:"Company Rating", field: "company_rating" },
-            { title:"Company Location", field:"location" },
-            { title:"Pay(/hr)", field:"hourly_pay" },
-            {
-                title: "Actions",
-                field: "actions",
-                formatter: function(cell, formatterParams, onRender){
-                    let button = document.createElement("button");
-                    button.innerHTML = "+";
-                    button.classList.add("apply-btn");
-                    
-                    button.addEventListener("click", async function(){
-                        const rowData = cell.getRow().getData();
-                        await applyToJob(rowData, cell, user.id);
-                    });
-                    return button;
+        const table = new Tabulator("#student-jobs", {
+            data: data,
+            layout:"fitColumns",
+            height: "auto",
+            columns: [
+                { title:"Company Name", field:"company_name" },
+                { title:"Job Title", field:"job_title" },
+                { title:"Company Rating", field: "company_rating" },
+                { title:"Company Location", field:"location" },
+                { title:"Pay(/hr)", field:"hourly_pay" },
+                {
+                    title: "Actions",
+                    field: "actions",
+                    formatter: function(cell, formatterParams, onRender){
+                        let button = document.createElement("button");
+                        button.innerHTML = "+";
+                        button.classList.add("apply-btn");
+                        
+                        button.addEventListener("click", async function(){
+                            const rowData = cell.getRow().getData();
+                            await applyToJob(rowData, cell, user.id);
+                        });
+                        return button;
+                    }
                 }
+            ],
+
+            pagination: "local",
+            paginationSize: 10,
+        });
+
+        addCustomFilterControls(table);
+        table.on("rowClick", function(e, row){
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                return;
             }
-        ],
-
-        pagination: "local",
-        paginationSize: 10,
-    });
-
-    addCustomFilterControls(table);
+            const rowData = row.getData();
+            console.log("Row clicked:", rowData);
+            window.location.href = `JobDetails.html?jobId=${rowData.id}`;
+        });
     }
 });
 

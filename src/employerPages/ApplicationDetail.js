@@ -579,29 +579,6 @@ async function autoRejectIfInterviewNotGranted() {
     }
 }
 
-async function autoRejectIfNotRanked() {
-    if (!calendarRecord || !calendarRecord.interview_period_end) return;
-    const rankings_set_deadline = new Date(calendarRecord.interview_period_end);
-    
-    if (today >= rankings_set_deadline) {
-        if (applicationRecord.status !== "offer" && applicationRecord.status !== "ranked") {
-            const { data, error } = await supabaseClient
-                .from("current_applications")
-                .update({ status: "not-selected" })
-                .eq("id", applicationId)
-                .select()
-                .maybeSingle();
-
-            if (error) {
-                console.error("Failed to auto-update:", error);
-            } else {
-                applicationRecord = data;
-                setStatusBadge(applicationRecord.status);
-            }
-        }
-    }
-}
-
 function showLoading(msg="Loading..."){ loadingEl.style.display="block"; loadingEl.innerText=msg; }
 function hideLoading(){ loadingEl.style.display="none"; }
 function showError(msg){ errorEl.style.display="block"; errorEl.innerText=msg; loadingEl.style.display="none"; }
