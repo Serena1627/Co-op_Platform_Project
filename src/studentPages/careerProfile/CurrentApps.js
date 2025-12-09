@@ -1004,10 +1004,8 @@ async function showRankingMode(studentId) {
         rankingContainer.appendChild(card);
     });
 
-    // Setup drag and drop
     setupRankingDragAndDrop();
 
-    // Add save button at bottom
     const saveSection = document.createElement("div");
     saveSection.className = "ranking-save-section";
     saveSection.innerHTML = `

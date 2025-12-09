@@ -1,4 +1,5 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getDate } from "../components/coop-information.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     let applicationDeadline = null
-    const today = new Date(2025, 9, 26);
+    const today = getDate();
 
     const banner = document.getElementById('application-status-banner');
     for (const round in coopData){

@@ -1,5 +1,6 @@
 import { supabaseClient } from "../supabaseClient.js";
 
+
 let centralDate = loadDateFromStorage();
 
 function loadDateFromStorage() {
