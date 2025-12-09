@@ -2,7 +2,8 @@ import { supabaseClient } from "../../supabaseClient.js";
 
 let selectedApplications = new Set();
 
-let currentDate = new Date();
+let currentDate = new Date(2025, 10, 11);
+console.log("current date:" + currentDate);
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -13,9 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    await calculateProgressTimeline(user.id);
     setupAppFilters();
     await loadApplications(user.id);
+    await calculateProgressTimeline(user.id);
 });
 
 async function loadApplications(studentId) {
@@ -598,7 +599,7 @@ async function calculateProgressTimeline(studentId) {
                 .from("current_applications")
                 .select("id")
                 .eq("student_id", studentId)
-                .eq("status", "pending");
+                .eq("status", "submitted");
 
             for (let app of pendingApplications) {
                 await updateApplicationStatus(app.id, stage);
@@ -606,6 +607,17 @@ async function calculateProgressTimeline(studentId) {
         }
         else if (currentDate >= currentRound.interview_period_end && currentDate < currentRound.rankings_due) {
             stage = 3;
+            const { data: interviewApplications } = await supabaseClient
+                .from("current_applications")
+                .select("id")
+                .eq("student_id", studentId)
+                .eq("status", "interview"); 
+
+            for (let app of interviewApplications) {
+                await updateApplicationStatus(app.id, stage);
+            }
+            
+            showRankingMode(studentId);
         }
         else if (currentDate >= currentRound.rankings_due && currentDate < currentRound.results_available) {
             stage = 4;
@@ -656,6 +668,7 @@ function createApplicationCard(application) {
         'in-review': { text: 'Application In Review', class: 'status-in-review' },
         'interview': { text: 'Interview Requested', class: 'status-interview' },
         'offer': { text: 'Offer Received', class: 'status-offer' },
+        'ranked': { text: 'Ranked', class: 'status-ranked' },
         'accepted': { text: 'Offer Accepted', class: 'status-accepted' },
         'rejected': { text: 'Not Selected', class: 'status-rejected' },
         'withdrawn': { text: 'Withdrawn', class: 'status-withdrawn' }
@@ -860,23 +873,21 @@ function showNotification(message){
 
 async function updateApplicationStatus(applicationId, stage){
     try {
-        let data = null;
-        if (stage === 2) {
-            const response = await supabaseClient
+        const response = await supabaseClient
                 .from("current_applications")
-                .select("status")
+                .select("status, student_rank_position")
                 .eq("id", applicationId)
                 .single();
 
-            if (response.error) throw response.error;
+        if (response.error) throw response.error;
 
-            data = response.data;
-            const application_status = data.status;
-        
-            const card = document.querySelector(`.application-card[data-application-id="${applicationId}"]`);
+        const data = response.data;
+        const application_status = data.status;
+        const card = document.querySelector(`.application-card[data-application-id="${applicationId}"]`);
+        if (card) {
+            const statusBadge = card.querySelector(".status-badge");
             
-            if (card) {
-                const statusBadge = card.querySelector(".status-badge");
+            if (stage === 2) {
                 if (application_status === "interview") {
                     statusBadge.textContent = "Interview Requested";
                     statusBadge.className = "status-badge status-interview";
@@ -886,6 +897,25 @@ async function updateApplicationStatus(applicationId, stage){
                 }
                 card.dataset.status = application_status;
             }
+            
+            else if (stage === 3) {
+                console.log("we are here in stage 3");
+                if (application_status === "offer") {
+                    statusBadge.textContent = "Offer Received";
+                    statusBadge.className = "status-badge status-offer";
+                }
+                else if (application_status === "ranked") {
+                    statusBadge.textContent = "Ranked";
+                    statusBadge.className = "status-badge status-ranked";
+                }
+                else {
+                    statusBadge.textContent = "Not Selected";
+                    statusBadge.className = "status-badge status-rejected";
+                }
+                card.dataset.status = application_status;
+            }
+        } else {
+            console.log(`Card not found for application ${applicationId}`);
         }
         return data;
     } catch (error){
@@ -893,3 +923,236 @@ async function updateApplicationStatus(applicationId, stage){
         throw error;
     }
 }
+
+async function showRankingMode(studentId) {
+    const { data: rankedApps, error } = await supabaseClient
+        .from("current_applications")
+        .select(`
+            id,
+            status,
+            student_rank_position,
+            job_id,
+            applied_date,
+            job_listings!inner (
+                id,
+                job_title,
+                location,
+                hourly_pay,
+                company:company_id (
+                    company_name
+                )
+            )
+        `)
+        .eq("student_id", studentId)
+        .in("status", ["offer", "ranked"])
+        .order("student_rank_position", { ascending: true, nullsFirst: false });
+
+    if (error) {
+        console.error("Error loading ranked applications:", error);
+        return;
+    }
+
+    const headerElement = document.querySelector(".applications-header h2");
+    headerElement.innerHTML = `
+        🎯 Rank Your Job Offers (${rankedApps.length})
+        <span style="font-size: 0.8em; font-weight: normal; display: block; margin-top: 5px;">
+            Drag to reorder by preference. Top = most preferred (Rank 1)
+        </span>
+    `;
+    
+    hideSelectApplySection();
+    
+    const contentContainer = document.querySelector(".content");
+    contentContainer.innerHTML = "";
+
+    if (rankedApps.length === 0) {
+        contentContainer.innerHTML = `
+            <div class="empty-state">
+                <p>You don't have any job offers to rank at this time.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const instructionsBanner = document.createElement("div");
+    instructionsBanner.className = "ranking-instructions-banner";
+    instructionsBanner.innerHTML = `
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196F3;">
+            <strong>📋 Instructions:</strong> Drag the cards below to rank your job preferences. 
+            Your top choice should be at the top (Rank 1). Click "Save Rankings" when done.
+        </div>
+    `;
+    contentContainer.appendChild(instructionsBanner);
+
+    const rankingContainer = document.createElement("div");
+    rankingContainer.id = "ranking-container";
+    rankingContainer.className = "ranking-container";
+    contentContainer.appendChild(rankingContainer);
+
+    rankedApps.forEach((app, index) => {
+        const card = createRankingCard(app, index + 1);
+        rankingContainer.appendChild(card);
+    });
+
+    // Setup drag and drop
+    setupRankingDragAndDrop();
+
+    // Add save button at bottom
+    const saveSection = document.createElement("div");
+    saveSection.className = "ranking-save-section";
+    saveSection.innerHTML = `
+        <button id="save-rankings-btn" class="btn btn-primary" style="padding: 15px 30px; font-size: 16px;">
+            <i class="fas fa-save"></i> Save Rankings
+        </button>
+    `;
+    contentContainer.appendChild(saveSection);
+
+    document.getElementById("save-rankings-btn").addEventListener("click", async () => {
+        await saveRankingsFromPage();
+    });
+}
+
+
+function createRankingCard(application, currentRank) {
+    const job = application.job_listings;
+    const companyName = job.company?.company_name || "Unknown Company";
+    const appliedDate = new Date(application.applied_date).toLocaleDateString('en-US', { 
+        month: '2-digit', 
+        day: '2-digit' 
+    });
+
+    const card = document.createElement("div");
+    card.className = "application-card ranking-card";
+    card.dataset.applicationId = application.id;
+    card.setAttribute("draggable", "true");
+
+    const statusClass = application.status === 'offer' ? 'status-offer' : 'status-ranked';
+    const statusText = application.status === 'offer' ? 'Offer Received' : 'Ranked';
+
+    card.innerHTML = `
+        <div class="ranking-handle">
+            <div class="rank-number">${currentRank}</div>
+            <i class="fas fa-grip-vertical"></i>
+        </div>
+        <div class="card-content">
+            <div class="card-header">
+                <div class="company-info">
+                    <h3>${job.job_title}</h3>
+                    <p>${companyName} • ${job.location} • $${job.hourly_pay}/hr</p>
+                </div>
+                <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <div class="card-footer">
+                <span style="color: #666; font-size: 0.9em;">Applied ${appliedDate}</span>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function setupRankingDragAndDrop() {
+    const container = document.getElementById("ranking-container");
+    if (!container) return;
+
+    let draggedItem = null;
+
+    container.addEventListener("dragstart", (e) => {
+        const card = e.target.closest(".ranking-card");
+        if (!card) return;
+        draggedItem = card;
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", card.dataset.applicationId);
+    });
+
+    container.addEventListener("dragend", () => {
+        if (draggedItem) draggedItem.classList.remove("dragging");
+        draggedItem = null;
+        updateRankNumbersOnPage();
+    });
+
+    container.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const after = getDragAfterElement(container, e.clientY);
+        if (!draggedItem) return;
+
+        if (after == null) {
+            container.appendChild(draggedItem);
+        } else {
+            container.insertBefore(draggedItem, after);
+        }
+    });
+
+    function getDragAfterElement(container, y) {
+        const els = [...container.querySelectorAll(".ranking-card:not(.dragging)")];
+
+        return els.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+}
+
+function updateRankNumbersOnPage() {
+    const rankingContainer = document.getElementById("ranking-container");
+    if (!rankingContainer) return;
+    
+    const items = rankingContainer.querySelectorAll('.ranking-card');
+    
+    items.forEach((item, index) => {
+        const rankNumber = item.querySelector('.rank-number');
+        if (rankNumber) {
+            rankNumber.textContent = index + 1;
+        }
+    });
+}
+
+async function saveRankingsFromPage() {
+    try {
+        const saveBtn = document.getElementById("save-rankings-btn");
+        const originalText = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const rankingContainer = document.getElementById("ranking-container");
+        const items = rankingContainer.querySelectorAll('.ranking-card');
+        
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const appId = item.dataset.applicationId;
+            const rankingOrder = i + 1;
+        
+            const { error } = await supabaseClient
+                .from("current_applications")
+                .update({ 
+                    student_rank_position: rankingOrder,
+                    status: 'ranked'
+                })
+                .eq("id", appId);
+
+            if (error) throw error;
+        }
+
+        showNotification("Rankings saved successfully!");
+        
+        setTimeout(() => window.location.reload(), 1000);
+
+    } catch (error) {
+        console.error("Error saving rankings:", error);
+        alert(`Failed to save rankings: ${error.message}`);
+        
+        const saveBtn = document.getElementById("save-rankings-btn");
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Rankings';
+    }
+}
+
+
+
+
+

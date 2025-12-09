@@ -54,6 +54,8 @@ let calendarRecord = null;
 let resumeFile = null;
 let resumeSignedUrl = null;
 
+const today = new Date(2025, 10, 18);
+
 function isBefore(dateStr) {
     if (!dateStr) return false;
     return new Date() < new Date(dateStr);
@@ -233,7 +235,7 @@ function applyCoopCalendarGating(){
     if (currentDate <= interviews_start){
         btnOffer.remove();
         btnRanked.remove();
-    }else if (currentDate <= ranking_period_end){
+    }else if (currentDate >= ranking_period_start){
         btnInReview.remove();
         btnInterview.remove();
     }
@@ -555,10 +557,34 @@ function enableMessaging() {
 
 async function autoRejectIfInterviewNotGranted() {
     if (!calendarRecord || !calendarRecord.interview_period_start) return;
-    const today = new Date();
     const interviewStart = new Date(calendarRecord.view_interviews_granted);
     if (today >= interviewStart) {
+        console.log("we got here");
         if (applicationRecord.status !== "interview") {
+            console.log("we got here");
+            const { data, error } = await supabaseClient
+                .from("current_applications")
+                .update({ status: "not-selected" })
+                .eq("id", applicationId)
+                .select()
+                .maybeSingle();
+
+            if (error) {
+                console.error("Failed to auto-update:", error);
+            } else {
+                applicationRecord = data;
+                setStatusBadge(applicationRecord.status);
+            }
+        }
+    }
+}
+
+async function autoRejectIfNotRanked() {
+    if (!calendarRecord || !calendarRecord.interview_period_end) return;
+    const rankings_set_deadline = new Date(calendarRecord.interview_period_end);
+    
+    if (today >= rankings_set_deadline) {
+        if (applicationRecord.status !== "offer" && applicationRecord.status !== "ranked") {
             const { data, error } = await supabaseClient
                 .from("current_applications")
                 .update({ status: "not-selected" })
