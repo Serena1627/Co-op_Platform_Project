@@ -1,0 +1,321 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #002855 0%, #003d82 50%, #6fa3d8 100%);
+    min-height: 100vh;
+}
+
+.dashboard-wrapper {
+    padding: 40px 20px;
+    margin-top: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-top: 20px;
+}
+
+/* Header Section */
+.header-section {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 40, 85, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.welcome-text h1 {
+    font-size: 2.5em;
+    color: #002855;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #003d82;
+    font-size: 1.1em;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.95em;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #002855 0%, #003d82 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 40, 85, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 40, 85, 0.4);
+    background: linear-gradient(135deg, #003d82 0%, #004d9f 100%);
+}
+
+.btn-secondary {
+    background: white;
+    color: #002855;
+    border: 2px solid #002855;
+}
+
+.btn-secondary:hover {
+    background: #f0f7ff;
+}
+
+/* Cards Container */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 40, 85, 0.12);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #002855 0%, #6fa3d8 100%);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 40, 85, 0.2);
+}
+
+.card-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.card-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon-jobs {
+    background: linear-gradient(135deg, #002855 0%, #003d82 100%);
+    color: white;
+}
+
+.icon-applications {
+    background: linear-gradient(135deg, #003d82 0%, #4a7ba7 100%);
+    color: white;
+}
+
+.icon-status {
+    background: linear-gradient(135deg, #4a7ba7 0%, #6fa3d8 100%);
+    color: white;
+}
+
+.card-info {
+    flex: 1;
+}
+
+.card h2 {
+    font-size: 3em;
+    font-weight: 700;
+    color: #002855;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.card p {
+    color: #003d82;
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.card-action {
+    display: inline-block;
+    color: #003d82;
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-top: 8px;
+    transition: all 0.3s;
+}
+
+.card:hover .card-action {
+    transform: translateX(5px);
+    color: #002855;
+}
+
+/* Status Card Special Styling */
+.card-status {
+    grid-column: span 1;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e8f2ff;
+}
+
+.card-header h3 {
+    font-size: 1.3em;
+    color: #002855;
+    font-weight: 600;
+}
+
+.card-header .card-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.status-content {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e8f2ff 100%);
+    padding: 20px;
+    border-radius: 12px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-content p {
+    color: #002855;
+    font-size: 0.95em;
+    line-height: 1.8;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        padding: 20px 15px;
+    }
+
+    .header-section {
+        padding: 20px 25px;
+    }
+
+    .welcome-text h1 {
+        font-size: 1.8em;
+    }
+
+    .subtitle {
+        font-size: 1em;
+    }
+
+    .quick-actions {
+        width: 100%;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 10px 16px;
+        font-size: 0.9em;
+    }
+
+    .cards-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .card h2 {
+        font-size: 2.5em;
+    }
+
+    .card-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Latest Applicants Card */
+.applicants-card, .company-card {
+    margin-top: 25px;
+}
+
+.card-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #002855;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.applicants-list, .company-info {
+    background: #f7faff;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.applicant-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #dce6f5;
+}
+
+.applicant-item:last-child {
+    border-bottom: none;
+}
+
+.applicant-job {
+    font-weight: 600;
+    color: #003d82;
+}
+
+.applicant-status {
+    font-size: 0.9em;
+    color: #4a7ba7;
+}
+
+/* Company Snapshot */
+.company-info p {
+    font-size: 1em;
+    margin-bottom: 8px;
+    color: #002855;
+}

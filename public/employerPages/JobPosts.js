@@ -1,7 +1,9 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getCurrentCoopInformation, getDate } from "../components/coop-information.js";
 
 let currentEditingId = null;
 let table = null;
+let currentDate = getDate();
 
 function getCompanyIdFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -53,15 +55,33 @@ async function loadJobData(jobId) {
         document.getElementById('is_range').checked = data.is_range || false;
         document.getElementById('no_of_open_positions').value = data.no_of_open_positions || '';
         document.getElementById('is_full_time').checked = data.is_full_time || false;
-        document.getElementById('job_rating').value = data.job_rating || '';
         document.getElementById('requires_in_person_interviews').checked = data.requires_in_person_interviews || false;
         document.getElementById('requires_transportation').checked = data.requires_transportation || false;
         document.getElementById('follows_scdc_calendar').checked = data.follows_scdc_calendar || false;
         document.getElementById('perks').value = data.perks || '';
+        document.getElementById('contact_email').value = data.contact_email || '';
+        document.getElementById('allow_messaging').checked = data.allow_messaging || false;
+        document.getElementById('contact_name').value = data.contact_name || '';
     } catch (error) {
         console.error('Error loading job data:', error);
         alert('Error loading job data. Check console for details.');
     }
+}
+
+function formatQualificationsToArray(qualificationsText) {
+    if (!qualificationsText) return [];
+    
+    if (Array.isArray(qualificationsText)) {
+        return qualificationsText;
+    }
+    
+    const lines = qualificationsText.split('\n');
+    
+    return lines
+        .map(line => {
+            return line.replace(/^[\s]*[•\-\*\d\.\)]+[\s]*/, '').trim();
+        })
+        .filter(line => line.length > 0);
 }
 
 async function saveJobPosting(event) {
@@ -74,9 +94,18 @@ async function saveJobPosting(event) {
         return;
     }
 
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        alert("You are not logged in.");
+        window.location.assign("../sign-in/login.html");
+        return;
+    }
+
+
     const formData = {
         job_title: document.getElementById('job_title').value,
         location: document.getElementById('location').value,
+        recruiter_id: user.id,
         job_description: document.getElementById('job_description').value || null,
         job_qualifications: document.getElementById('job_qualifications').value || null,
         desired_majors: document.getElementById('desired_majors').value ? document.getElementById('desired_majors').value.split(',').map(s => s.trim()) : null,
@@ -88,12 +117,17 @@ async function saveJobPosting(event) {
         is_range: document.getElementById('is_range').checked,
         no_of_open_positions: document.getElementById('no_of_open_positions').value ? parseInt(document.getElementById('no_of_open_positions').value) : null,
         is_full_time: document.getElementById('is_full_time').checked,
-        job_rating: document.getElementById('job_rating').value ? parseFloat(document.getElementById('job_rating').value) : null,
         requires_in_person_interviews: document.getElementById('requires_in_person_interviews').checked,
         requires_transportation: document.getElementById('requires_transportation').checked,
         follows_scdc_calendar: document.getElementById('follows_scdc_calendar').checked,
-        perks: document.getElementById('perks').value || null
+        perks: document.getElementById('perks').value || null,
+        contact_email: document.getElementById('contact_email').value || null,
+        allow_messaging: document.getElementById('allow_messaging').checked,
+        contact_name: document.getElementById('contact_name').value || null,
     };
+
+    formData.job_qualifications = formatQualificationsToArray(formData.job_qualifications);
+    formData.perks = formatQualificationsToArray(formData.perks);
 
     try {
         if (currentEditingId) {
@@ -109,6 +143,17 @@ async function saveJobPosting(event) {
         console.error('Error saving job posting:', error);
         alert('Error saving job posting. Check console for details.');
     }
+}
+
+async function jobDeletionLate(){
+    let cycle = "";
+    if (currentDate.getMonth() > 7 && currentDate.getMonth() < 4){
+        cycle = "Spring/Summer";
+    }else{
+        cycle = "Fall/Winter";
+    }
+    const coopDates = getCurrentCoopInformation(cycle, currentDate);
+    return coopDates.stage_number >= 4;
 }
 
 async function insertJobPosting(formData, companyId) {
@@ -141,7 +186,13 @@ async function updateJobPosting(jobId, formData) {
 }
 
 async function deleteJobPosting(jobId) {
-    if (!confirm('Are you sure you want to delete this job posting?')) return;
+    let setWarningMessage = jobDeletionLate();
+    if (!setWarningMessage){
+        if (!confirm('Are you sure you want to delete this job posting?')) return;
+    } else{
+        if (!confirm('Warning! Cancelling a job this late in the coop application stage can result in a strike on the company. Do you still want to proceed with this decision?')) return;
+    }
+    
     
     try {
         const { error } = await supabaseClient
@@ -212,43 +263,53 @@ async function loadTable(companyId = null) {
                         title: "Actions",
                         field: "actions",
                         formatter: function(cell) {
-                            let container = document.createElement("div");
-                            
-                            let editButton = document.createElement("button");
+                            const container = document.createElement("div");
+
+                            const editButton = document.createElement("button");
                             editButton.innerHTML = "Edit";
                             editButton.className = "edit-btn";
-                            editButton.addEventListener("click", function() {
+                            editButton.addEventListener("click", function(e) {
                                 const jobId = cell.getRow().getData().id;
                                 showForm(jobId);
                             });
-                            
-                            let deleteButton = document.createElement("button");
+
+                            const deleteButton = document.createElement("button");
                             deleteButton.innerHTML = "Delete";
                             deleteButton.className = "delete-btn";
-                            deleteButton.addEventListener("click", function() {
+                            deleteButton.addEventListener("click", function(e) {
                                 const jobId = cell.getRow().getData().id;
                                 deleteJobPosting(jobId);
                             });
-                            
+
                             container.appendChild(editButton);
                             container.appendChild(deleteButton);
                             return container;
                         }
                     }
-                ],
-            },
+                ]
+            }
         ],
         pagination: "local",
         paginationSize: 10,
     });
+
+    table.on("rowClick", function(e, row){
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+            return;
+        }
+        const rowData = row.getData();
+        console.log("Row clicked:", rowData);
+        window.location.href = `StudentSelection.html?jobId=${rowData.id}`;
+    });
 }
+
 
 window.showForm = showForm;
 window.hideForm = hideForm;
 window.saveJobPosting = saveJobPosting;
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const companyId = getCompanyIdFromURL();  
+    const companyId = getCompanyIdFromURL();
 
     if (!companyId) {
         alert('No company associated. Please complete your company profile.');

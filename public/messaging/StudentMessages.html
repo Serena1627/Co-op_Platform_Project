@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Messaging</title>
+  <link rel="stylesheet" href="../styles/StudentMessages.css" />
+  <link rel="stylesheet" href="../styles/Navbar.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+  <script>
+    fetch('../components/Navbar.html')
+      .then(response => response.text())
+      .then(data => { document.getElementById('navbar-container').innerHTML = data; })
+      .catch(err => console.error('Navbar load error:', err));
+  </script>
+
+  <div style="height:15px;"></div>
+  <div class="st-messages-container">
+    <aside class="st-sidebar">
+      <div class="st-sidebar-header">
+        <h2>Messages</h2>
+      </div>
+
+      <div class="st-start">
+        <label for="recruiter-select">Select Recruiter / Job</label>
+        <select id="recruiter-select">
+          <option value="">Loading...</option>
+        </select>
+        <button id="start-conversation-btn" class="st-btn primary">Start Conversation</button>
+      </div>
+
+      <div id="conversations-list" class="st-conversations"></div>
+      <div id="conversations-loading" class="loading" style="display:none;">Loading conversations…</div>
+    </aside>
+
+    <main class="st-chat-area">
+      <div id="chat-empty" class="st-empty">
+        <i class="fa fa-comments st-empty-icon"></i>
+        <h3>Select a conversation</h3>
+        <p>Choose a conversation from the left to view messages.</p>
+      </div>
+
+      <div id="chat-panel" class="st-chat-panel" style="display:none;">
+        <div class="st-chat-header">
+          <div>
+            <div id="chat-employer-name" class="st-chat-title">Recruiter</div>
+          </div>
+        </div>
+
+        <div id="messages-container" class="st-messages"></div>
+        <div id="messages-loading" class="loading" style="display:none;">Loading messages…</div>
+
+        <div class="st-input-row">
+          <input id="message-input" type="text" placeholder="Type a message..." />
+          <button id="send-btn" class="st-btn">Send</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="StudentMessages.js"></script>
+</body>
+</html>

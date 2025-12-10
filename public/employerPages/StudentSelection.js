@@ -1,40 +1,60 @@
-import { supabaseClient } from "../supabaseClient.js";
+import { supabaseClient } from "../../public/supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get("jobId");
 
     const { data: userData } = await supabaseClient.auth.getUser();
     const user = userData?.user;
 
-    const { data: companyData, error: companyError } = await supabaseClient
-        .from("companies")
-        .select("*")
-        .overlaps("associates", [`${user.user_metadata.firstName} ${user.user_metadata.lastName}`])
-        .maybeSingle();
+    const { data:recruiterInfo, error:companyError } = await supabaseClient
+        .from("recruiters")
+        .select(`
+            id,
+            company_id,
+            companies:company_id (
+                id,
+                company_name,
+                primary_contact
+            )`
+        )
+        .eq("id", user.id)
+        .single();
 
     if (companyError) {
         console.error("Error Getting Company Profile:", companyError);
         return;
     }
+    let companyData = recruiterInfo.companies;
 
+    const companyName = companyData?.company_name;
+    const companyId = companyData?.id;
     const mainPageLink = document.getElementById('main-page-link');
     if (mainPageLink) {
-        mainPageLink.href = `JobPosts.html?company_id=${companyData.id}`;
-    }else{
-        console.log("here");
+        mainPageLink.href = `/public/employerPages/JobPosts.html?company_id=${companyData.id}`;
     }
+    const title = document.querySelector(".container h1");
+    const jobFilter = document.querySelector(".filters select:first-of-type");
 
-    const { data: applications, error } = await supabaseClient
-        .from("application_submissions")
-        .select("*")
-        .eq("company_id", companyData.id);
-
-    if (error) {
-        console.error("Error Getting Applications:", error);
-        return;
+    let applications;
+    if (jobId) {
+        jobFilter.disabled = true;
+        const { data: jobData } = await supabaseClient
+            .from("job_listings")
+            .select("job_title")
+            .eq("id", jobId)
+            .maybeSingle();
+        
+        const jobTitle = jobData?.job_title || jobId;
+        title.textContent = `Student Applications for ${companyName} - ${jobTitle}`;
+        applications = (await getJobApplications(null, jobId)).data
+    } else {
+        title.textContent = `Student Applications for ${companyName}`;
+        applications = (await getJobApplications(companyId, null)).data
     }
 
     const applicationGrid = document.getElementById("application-grid");
-
     if (!applications || applications.length === 0) {
         document.getElementById("no-applications").innerHTML = `
             <div class="no-applications">
@@ -79,8 +99,17 @@ function createApplicationCard(application, student) {
     
     const initials = `${student.first_name?.charAt(0) || ''}${student.last_name?.charAt(0) || ''}`;
     
-    const statusClass = application.status === 'reviewed' ? 'status-reviewed' : 'status-new';
-    const statusText = application.status === 'reviewed' ? 'Reviewed' : 'New Application';
+    let statusClass;
+    let statusText;
+
+    switch (application.status) {
+        case "in-review": statusClass = "status-reviewed"; statusText = "In Review"; break;
+        case "interview": statusClass = "status-interview"; statusText = "Interview"; break;
+        case "offer": statusClass = "status-offer"; statusText = "Offer"; break;
+        case "ranked": statusClass = "status-ranked"; statusText = "Ranked"; break;
+        case "rejected": statusClass = "status-rejected"; statusText = "Rejected"; break;
+        default: statusClass = "status-new"; statusText = "New Application";
+    }
     
     const citizenship = student.is_international ? 'Non-US Citizen' : 'US Citizen';
     let coop_experience = "";
@@ -122,7 +151,7 @@ function createApplicationCard(application, student) {
             </div>
         </div>
 
-        <button class="see-more-btn" onclick="viewApplication('${application.id}', '${student.id}')">
+        <button class="see-more-btn" onclick="viewApplication('${application.application_id}', '${student.student_id}')">
             <i class="fa fa-file-text"></i> View Full Application
         </button>
     `;
@@ -132,6 +161,26 @@ function createApplicationCard(application, student) {
 
 function viewApplication(applicationId, studentId) {
     window.location.href = `ApplicationDetail.html?applicationId=${applicationId}&studentId=${studentId}`;
+}
+
+
+async function getJobApplications(companyId = null, jobId = null) {
+    let filterId = companyId;
+    let filterStatement = "company_id";
+    if (jobId) {
+        filterId = jobId;
+        filterStatement = "job_id";
+    }
+    const { data, error } = await supabaseClient
+        .from("application_submissions")
+        .select("*")
+        .eq(filterStatement, filterId);
+
+    if (error) {
+        console.error("Error Getting Applications:", error);
+        return { data: [], error }; 
+    }
+    return { data: data, error: null };
 }
 
 window.viewApplication = viewApplication;

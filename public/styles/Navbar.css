@@ -63,3 +63,7 @@
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+.far.fa-user-circle {
+    font-size: 25px;
+}

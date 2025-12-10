@@ -1,4 +1,5 @@
 import { supabaseClient } from "../supabaseClient.js";
+import { getDate } from "../components/coop-information.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -9,7 +10,53 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    const { data, error } = await supabaseClient
+    const { data: studentData, error: studentError } = await supabaseClient
+        .from("student_profile")
+        .select("coop_cycle")
+        .eq("student_id", user.id)
+
+    if (studentError) {
+        console.error("Error loading student profile:", studentError);
+        return;
+    }
+
+    const student_coop_cycle = studentData[0].coop_cycle;
+    const { data: coopData, error: coopError } = await supabaseClient
+        .from("coop_calendar")
+        .select("job_postings_available, interview_requests_due")
+        .eq("coop_cycle", student_coop_cycle)
+
+    if (coopError) {
+        console.error("Error loading coop calendar:", coopError);
+        return;
+    }
+    let applicationDeadline = null
+    const today = getDate();
+
+    const banner = document.getElementById('application-status-banner');
+    for (const round in coopData){
+        const jobPostingsAvailable = new Date(coopData[round].job_postings_available);
+        const interviewRequestsDue = new Date(coopData[round].interview_requests_due);
+        if (today >= jobPostingsAvailable && today <= interviewRequestsDue){
+            applicationDeadline = interviewRequestsDue;
+            break;
+        }
+    }
+    if (!applicationDeadline){
+            banner.className = 'status-banner closed';
+            banner.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        Sorry, you are not within the application period for this cycle.
+    `;
+    }
+    else {
+        banner.className = 'status-banner open';
+        const daysLeft = Math.ceil((applicationDeadline - today) / (1000 * 60 * 60 * 24));
+        banner.innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        Application window closes in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.
+        `;
+        const { data, error } = await supabaseClient
         .from("job_listings")
         .select(`
             id,
@@ -22,49 +69,58 @@ document.addEventListener("DOMContentLoaded", async () => {
             )
         `);
 
-    if (error) {
-        console.error("Error loading jobs:", error);
-        return;
-    }
+        if (error) {
+            console.error("Error loading jobs:", error);
+            return;
+        }
 
-    data.forEach(row => {
-        row.company_name = row.company?.company_name || "";
-        row.company_rating = row.company?.rating ?? null;
-        row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : null;
-    });
+        data.forEach(row => {
+            row.company_name = row.company?.company_name || "";
+            row.company_rating = row.company?.rating ?? "Rating not established";
+            row.hourly_pay = row.hourly_pay !== undefined && row.hourly_pay !== null ? Number(row.hourly_pay) : "Unpaid";
+        });
 
-    const table = new Tabulator("#student-jobs", {
-        data: data,
-        layout:"fitColumns",
-        height: "auto",
-        columns: [
-            { title:"Company Name", field:"company_name" },
-            { title:"Job Title", field:"job_title" },
-            { title:"Company Rating", field: "company_rating" },
-            { title:"Company Location", field:"location" },
-            { title:"Pay(/hr)", field:"hourly_pay" },
-            {
-                title: "Actions",
-                field: "actions",
-                formatter: function(cell, formatterParams, onRender){
-                    let button = document.createElement("button");
-                    button.innerHTML = "+";
-                    button.classList.add("apply-btn");
-                    
-                    button.addEventListener("click", async function(){
-                        const rowData = cell.getRow().getData();
-                        await applyToJob(rowData, cell, user.id);
-                    });
-                    return button;
+        const table = new Tabulator("#student-jobs", {
+            data: data,
+            layout:"fitColumns",
+            height: "auto",
+            columns: [
+                { title:"Company Name", field:"company_name" },
+                { title:"Job Title", field:"job_title" },
+                { title:"Company Rating", field: "company_rating" },
+                { title:"Company Location", field:"location" },
+                { title:"Pay(/hr)", field:"hourly_pay" },
+                {
+                    title: "Actions",
+                    field: "actions",
+                    formatter: function(cell, formatterParams, onRender){
+                        let button = document.createElement("button");
+                        button.innerHTML = "+";
+                        button.classList.add("apply-btn");
+                        
+                        button.addEventListener("click", async function(){
+                            const rowData = cell.getRow().getData();
+                            await applyToJob(rowData, cell, user.id);
+                        });
+                        return button;
+                    }
                 }
+            ],
+
+            pagination: "local",
+            paginationSize: 10,
+        });
+
+        addCustomFilterControls(table);
+        table.on("rowClick", function(e, row){
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                return;
             }
-        ],
-
-        pagination: "local",
-        paginationSize: 10,
-    });
-
-    addCustomFilterControls(table);
+            const rowData = row.getData();
+            console.log("Row clicked:", rowData);
+            window.location.href = `JobDetails.html?jobId=${rowData.id}`;
+        });
+    }
 });
 
 async function applyToJob(jobData, cell, studentId) {
@@ -108,7 +164,9 @@ async function applyToJob(jobData, cell, studentId) {
         button.disabled = false;
         button.innerHTML = "+";
     }
-}
+    }
+
+
 
 function showNotification(message) {
     const notification = document.createElement("div");
