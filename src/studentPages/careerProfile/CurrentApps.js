@@ -3,7 +3,7 @@ import { getDate } from "../../components/coop-information.js";
 
 let selectedApplications = new Set();
 
-let currentDate = new Date(2026, 0, 6);
+let currentDate = new getDate();
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
