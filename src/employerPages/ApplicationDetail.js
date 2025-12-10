@@ -361,8 +361,8 @@ async function validateRanking() {
     .eq("job_id", applicationRecord.job_id)
     .eq("status", "ranked");
 
-  if (rankCount >= 5) {
-    alert("You may only rank up to five candidates.");
+  if (rankCount >= 3) {
+    alert("You may only rank up to three candidates.");
     return false;
   }
 
@@ -650,14 +650,9 @@ async function autoRejectIfInterviewNotGranted() {
   }
 }
 
-// ===========================
-// Drag & Drop Ranking Functions
-// ===========================
-
 async function handleDragDropRanking() {
   showLoading("Preparing ranking interface...");
   try {
-    // Check if current student is already ranked
     const { data: currentApplication } = await supabaseClient
       .from("current_applications")
       .select("status, employer_rank_position")
@@ -667,7 +662,6 @@ async function handleDragDropRanking() {
     const isAlreadyRanked = currentApplication?.status === "ranked";
 
     if (!isAlreadyRanked) {
-      // Check if maximum rank limit reached
       const { count: rankCount } = await supabaseClient
         .from("current_applications")
         .select("*", { count: "exact", head: true })
@@ -689,7 +683,6 @@ async function handleDragDropRanking() {
     hideLoading();
     const success = await showRankingDialog();
     if (success) {
-      // Refresh the application status
       const { data: updatedApp } = await supabaseClient
         .from("current_applications")
         .select("*")
@@ -711,7 +704,6 @@ async function handleDragDropRanking() {
 
 async function showRankingDialog() {
   try {
-    // Get all ranked students for this job
     const { data: rankedStudents, error: fetchError } = await supabaseClient
       .from("current_applications")
       .select(
@@ -724,17 +716,14 @@ async function showRankingDialog() {
       )
       .eq("job_id", applicationRecord.job_id)
       .eq("status", "ranked")
-      .order("employer_rank_position", { ascending: true }); // Already sorted by rank
+      .order("employer_rank_position", { ascending: true });
 
     if (fetchError) throw fetchError;
 
-    // Prepare students list
     let students = rankedStudents || [];
 
-    // Check if current student is already in the list
     const currentStudentExists = students.some((s) => s.id === applicationId);
 
-    // If current student is not already ranked, add them at the end
     if (!currentStudentExists) {
       const nextRank =
         students.length > 0
@@ -744,14 +733,13 @@ async function showRankingDialog() {
       students.push({
         id: applicationId,
         student_id: studentId,
-        employer_rank_position: nextRank, // Default to last position
+        employer_rank_position: nextRank,
         student_profile: {
           first_name: studentRecord.first_name,
           last_name: studentRecord.last_name,
         },
       });
 
-      // Sort by rank position to maintain proper order
       students.sort(
         (a, b) =>
           (a.employer_rank_position || 999) - (b.employer_rank_position || 999)
@@ -793,11 +781,9 @@ async function showRankingDialog() {
 
       const rankingListEl = document.getElementById("ranking-list");
 
-      // Render ranking items - this should show students in current rank order
       function renderRankingItems(items) {
         rankingListEl.innerHTML = "";
 
-        // Sort items by current rank position
         const sortedItems = [...items].sort(
           (a, b) =>
             (a.employer_rank_position || 999) -
@@ -815,7 +801,6 @@ async function showRankingDialog() {
             ? `${student.student_profile.first_name} ${student.student_profile.last_name}`
             : `Student ${student.student_id}`;
 
-          // Show "New" if this is the current student being ranked
           const isNewStudent =
             student.id === applicationId && !currentStudentExists;
           const previousRankText = isNewStudent
@@ -841,21 +826,15 @@ async function showRankingDialog() {
             '<div class="ranking-placeholder">No students to rank</div>';
         }
 
-        // Initialize drag and drop
         initDragAndDrop(rankingListEl);
       }
 
-      // Rest of the function remains the same...
-
-      // Initialize with current students
       renderRankingItems(students);
 
-      // Initialize drag and drop functionality
       function initDragAndDrop(container) {
         let draggedItem = null;
 
         container.querySelectorAll(".ranking-item").forEach((item) => {
-          // Drag start
           item.addEventListener("dragstart", (e) => {
             draggedItem = item;
             setTimeout(() => {
@@ -863,7 +842,6 @@ async function showRankingDialog() {
             }, 0);
           });
 
-          // Drag end
           item.addEventListener("dragend", () => {
             draggedItem.classList.remove("dragging");
             container.querySelectorAll(".ranking-item").forEach((it) => {
@@ -873,7 +851,6 @@ async function showRankingDialog() {
             updateRankNumbers();
           });
 
-          // Drag over
           item.addEventListener("dragover", (e) => {
             e.preventDefault();
             const afterElement = getDragAfterElement(container, e.clientY);
@@ -889,7 +866,6 @@ async function showRankingDialog() {
           });
         });
 
-        // Helper function to determine where to insert dragged item
         function getDragAfterElement(container, y) {
           const draggableElements = [
             ...container.querySelectorAll(".ranking-item:not(.dragging)"),
@@ -911,7 +887,6 @@ async function showRankingDialog() {
         }
       }
 
-      // Update rank numbers after reordering
       function updateRankNumbers() {
         const items = rankingListEl.querySelectorAll(".ranking-item");
         items.forEach((item, index) => {
@@ -920,7 +895,6 @@ async function showRankingDialog() {
         });
       }
 
-      // Add keyboard accessibility
       function addKeyboardAccessibility() {
         rankingListEl.addEventListener("keydown", (e) => {
           if (!e.target.closest(".ranking-item")) return;
@@ -974,16 +948,13 @@ async function showRankingDialog() {
           }
         });
 
-        // Make items focusable
         rankingListEl.querySelectorAll(".ranking-item").forEach((item) => {
           item.setAttribute("tabindex", "0");
         });
       }
 
-      // Initialize keyboard accessibility
       addKeyboardAccessibility();
 
-      // Submit rankings
       document.getElementById("submit-ranking").onclick = async () => {
         const items = rankingListEl.querySelectorAll(".ranking-item");
         const rankings = Array.from(items).map((item, index) => ({
@@ -995,7 +966,6 @@ async function showRankingDialog() {
         showLoading("Saving rankings...");
 
         try {
-          // Update rankings in database
           for (const ranking of rankings) {
             await supabaseClient
               .from("current_applications")
@@ -1018,13 +988,11 @@ async function showRankingDialog() {
         }
       };
 
-      // Cancel button
       document.getElementById("cancel-ranking").onclick = () => {
         document.body.removeChild(overlay);
         resolve(false);
       };
 
-      // Close on escape key
       overlay.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           document.body.removeChild(overlay);
@@ -1032,7 +1000,6 @@ async function showRankingDialog() {
         }
       });
 
-      // Focus first item
       setTimeout(() => {
         const firstItem = rankingListEl.querySelector(".ranking-item");
         if (firstItem) firstItem.focus();
@@ -1045,7 +1012,6 @@ async function showRankingDialog() {
   }
 }
 
-// Helper function to update open positions
 async function updateOpenPositions() {
   try {
     const { data: currentJob, error: jobError } = await supabaseClient
@@ -1056,7 +1022,6 @@ async function updateOpenPositions() {
 
     if (jobError) throw jobError;
 
-    // Update open positions count
     const newOpenPositions = Math.max(
       0,
       (currentJob.no_of_open_positions || 0) - 1

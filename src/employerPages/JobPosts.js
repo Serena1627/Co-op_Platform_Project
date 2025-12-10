@@ -68,6 +68,22 @@ async function loadJobData(jobId) {
     }
 }
 
+function formatQualificationsToArray(qualificationsText) {
+    if (!qualificationsText) return [];
+    
+    if (Array.isArray(qualificationsText)) {
+        return qualificationsText;
+    }
+    
+    const lines = qualificationsText.split('\n');
+    
+    return lines
+        .map(line => {
+            return line.replace(/^[\s]*[•\-\*\d\.\)]+[\s]*/, '').trim();
+        })
+        .filter(line => line.length > 0);
+}
+
 async function saveJobPosting(event) {
     event.preventDefault();
 
@@ -79,6 +95,12 @@ async function saveJobPosting(event) {
     }
 
     const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        alert("You are not logged in.");
+        window.location.assign("../sign-in/login.html");
+        return;
+    }
+
 
     const formData = {
         job_title: document.getElementById('job_title').value,
@@ -103,6 +125,9 @@ async function saveJobPosting(event) {
         allow_messaging: document.getElementById('allow_messaging').checked,
         contact_name: document.getElementById('contact_name').value || null,
     };
+
+    formData.job_qualifications = formatQualificationsToArray(formData.job_qualifications);
+    formData.perks = formatQualificationsToArray(formData.perks);
 
     try {
         if (currentEditingId) {

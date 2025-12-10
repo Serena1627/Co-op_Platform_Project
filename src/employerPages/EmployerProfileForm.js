@@ -68,7 +68,6 @@ document.getElementById("next-btn").addEventListener("click", async () => {
         return;
     }
 
-    // Look up company
     const { data: existingCompany, error } = await supabaseClient
         .from("companies")
         .select("id, company_name")

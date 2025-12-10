@@ -47,7 +47,7 @@ const reviewQuestions = [
 
 const starRatingQuestions = [
   {
-    name: "employer_rating",
+    name: "company_rating",
     label: "Overall, I would rate this employer:",
   },
   {
@@ -87,6 +87,14 @@ class ReviewManager {
 
   async save(formData) {
     try {
+      const { data: jobData } = await supabaseClient
+        .from("job_listings")
+        .select("company_id")
+        .eq("id", this.jobId)
+        .single();
+
+      const companyId = jobData?.company_id;
+
       const payload = {
         student_id: this.studentId,
         job_id: this.jobId,
@@ -101,21 +109,32 @@ class ReviewManager {
         payload[q.name] = value ? parseInt(value) : null;
       });
 
-      // Add star rating values
-      starRatingQuestions.forEach((q) => {
-        const value = formData.get(q.name);
-        payload[q.name] = value ? parseInt(value) : null;
-      });
+      const companyRating = parseInt(formData.get(starRatingQuestions[0].name)) || 0;
+      const jobRating = parseInt(formData.get(starRatingQuestions[1].name)) || 0;
 
+      payload.company_rating = companyRating;
+      payload.job_rating = jobRating;
+
+      let savedReview;
       if (this.review?.id) {
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
           .from("student_reviews")
           .update(payload)
-          .eq("id", this.review.id);
+          .eq("id", this.review.id)
+          .select()
+          .single();
 
         if (error) throw error;
-        this.review = { ...this.review, ...payload };
-        return true;
+        savedReview = data;
+        this.review = savedReview;
+      
+        if (companyId && companyRating !== null) {
+          await this.updateCompanyRating(companyId);
+        }
+        if (jobRating !== null) {
+          await this.updateJobRating(this.jobId);
+        }
+      
       } else {
         const { data, error } = await supabaseClient
           .from("student_reviews")
@@ -124,12 +143,82 @@ class ReviewManager {
           .single();
 
         if (error) throw error;
-        this.review = data;
-        return true;
+        savedReview = data;
+        this.review = savedReview;
+
+        if (companyId && companyRating !== null) {
+          await this.updateCompanyRating(companyId);
+        }
+        if (jobRating !== null) {
+          await this.updateJobRating(this.jobId);
+        }
       }
+
+      return true;
     } catch (error) {
       console.error("Error saving review:", error);
       return false;
+    }
+  }
+
+  async updateCompanyRating(companyId) {
+    try {
+      const { data:reviews, error } = await supabaseClient.
+        from("student_reviews")
+        .select(`
+        company_rating,
+        job_listings!inner (
+          company_id
+        )`)
+        .eq("job_listings.company_id", companyId )
+        .not("company_rating", "is", null);
+      
+      if (error) throw error;
+      const reviewCount = reviews.length;
+      const totalRating = reviews.reduce((sum, review) => sum + review.company_rating, 0);
+      const newCompanyRating = reviewCount > 0 ? totalRating / reviewCount : 0;
+
+      const { data:updateData, error:updateError } = await supabaseClient
+        .from("companies")
+        .update({ rating: newCompanyRating, total_ratings: reviewCount })
+        .eq("id", companyId)
+        .select();
+      
+      if (updateError) throw updateError;
+      return updateData;
+    } catch (error) {
+      console.error("Error updating company rating:", error);
+
+      throw error;
+    }
+  }
+
+  async updateJobRating(jobId) {
+    try {
+      const { data:reviews, error } = await supabaseClient.
+        from("student_reviews")
+        .select(`job_rating`)
+        .eq("job_id", jobId )
+        .not("job_rating", "is", null);
+
+      if (error) throw error;
+      
+      const reviewCount = reviews.length;
+      const totalRating = reviews.reduce((sum, review) => sum + review.job_rating, 0);
+      const newJobRating = reviewCount > 0 ? totalRating / reviewCount : 0;
+
+      const { data:updateData, error:updateError } = await supabaseClient
+        .from("job_listings")
+        .update({ job_rating: newJobRating, total_ratings: reviewCount })
+        .eq("id", jobId)
+        .select();
+      
+      if (updateError) throw updateError;
+      return updateData;
+    } catch (error) {
+      console.error("Error updating job rating:", error);
+
+      throw error;
     }
   }
 
@@ -205,10 +294,9 @@ function createStarRating(name, label, value = null, readOnly = false) {
     starLabel.htmlFor = `${name}-star-${i}`;
     starLabel.className = "star-label";
     starLabel.innerHTML = "★";
-    starLabel.title = `${i} star${i !== 1 ? 's' : ''}`;
+    starLabel.title = `${i} star${i !== 1 ? "s" : ""}`;
 
     if (!readOnly) {
-      // Hover effect - highlight stars up to the hovered one
       starLabel.addEventListener("mouseenter", () => {
         const allStars = starsContainer.querySelectorAll(".star-label");
         allStars.forEach((star, idx) => {
@@ -222,11 +310,10 @@ function createStarRating(name, label, value = null, readOnly = false) {
 
       starsContainer.addEventListener("mouseleave", () => {
         const allStars = starsContainer.querySelectorAll(".star-label");
-        allStars.forEach(star => star.classList.remove("hover"));
+        allStars.forEach((star) => star.classList.remove("hover"));
       });
 
       input.addEventListener("change", () => {
-        // Update active stars
         const allStars = starsContainer.querySelectorAll(".star-label");
         allStars.forEach((star, idx) => {
           if (idx < i) {
@@ -238,7 +325,6 @@ function createStarRating(name, label, value = null, readOnly = false) {
       });
     }
 
-    // Set initial active state
     if (value !== null && value >= i) {
       starLabel.classList.add("active");
     }
@@ -338,15 +424,9 @@ function renderReviewForm(container, review, readOnly = false) {
     ratingSection.appendChild(ratingInput);
   });
 
-  // Add star rating questions
   starRatingQuestions.forEach((q) => {
     const ratingValue = review ? review[q.name] : null;
-    const starRating = createStarRating(
-      q.name,
-      q.label,
-      ratingValue,
-      readOnly
-    );
+    const starRating = createStarRating(q.name, q.label, ratingValue, readOnly);
     ratingSection.appendChild(starRating);
   });
 }
@@ -379,10 +459,11 @@ function renderReviewDisplay(container, review) {
     display.appendChild(questionDiv);
   });
 
-  // Add star ratings to display
   starRatingQuestions.forEach((q) => {
     const value = review[q.name];
-    const stars = value ? "★".repeat(value) + "☆".repeat(5 - value) : "Not rated";
+    const stars = value
+      ? "★".repeat(value) + "☆".repeat(5 - value)
+      : "Not rated";
 
     const questionDiv = document.createElement("div");
     questionDiv.className = "review-question";
@@ -443,7 +524,7 @@ async function setupReviewTab(tabElement, application, job) {
       if (highlights) {
         highlights.value = reviewManager.review.highlights_experience || "";
         highlights.readOnly = true;
-        highlights.removeAttribute('required');
+        highlights.removeAttribute("required");
         highlights.style.backgroundColor = "#f8f9fa";
         highlights.style.cursor = "not-allowed";
       }
@@ -451,7 +532,7 @@ async function setupReviewTab(tabElement, application, job) {
         improvements.value =
           reviewManager.review.opportunities_improvement || "";
         improvements.readOnly = true;
-        improvements.removeAttribute('required');
+        improvements.removeAttribute("required");
         improvements.style.backgroundColor = "#f8f9fa";
         improvements.style.cursor = "not-allowed";
       }

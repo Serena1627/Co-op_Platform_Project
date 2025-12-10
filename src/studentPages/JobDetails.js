@@ -164,9 +164,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         majorsContainer.innerHTML = `<span class="tag">All Majors Welcome</span>`;
     }
 
-    // -----------------------------
-    // RECRUITER
-    // -----------------------------
     const applyBtn = document.getElementById("apply-btn");
     if (source === "applications") {
         const { data: userData } = await supabaseClient.auth.getUser();
