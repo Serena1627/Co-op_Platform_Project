@@ -41,7 +41,7 @@ async function loadInterviewApplications() {
 
   const mainPageLink = document.getElementById('main-page-link');
   if (mainPageLink) {
-    mainPageLink.href = `JobPosts.html?company_id=${jobs.company_id}`;
+    mainPageLink.href = `/src/employerPages/JobPosts.html?company_id=${jobs[0].company_id}`;
   }
 
   const recruiterJobIds = jobs.map(j => j.id);

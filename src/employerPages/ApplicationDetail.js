@@ -98,7 +98,7 @@ async function init() {
 
     const mainPageLink = document.getElementById("main-page-link");
     if (mainPageLink) {
-      mainPageLink.href = `JobPosts.html?company_id=${jobRecord.company_id}`;
+      mainPageLink.href = `/src/employerPages/JobPosts.html?company_id=${jobRecord.company_id}`;
     }
 
     if (studentRecord.coop_number) {

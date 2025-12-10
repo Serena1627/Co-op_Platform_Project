@@ -51,7 +51,7 @@ async function loadProfile() {
     document.getElementById("primary_contact").textContent = company.primary_contact == user.id ? "True" : "False";
 
     document.getElementById("main-page-link").href =
-        `JobPosts.html?company_id=${company.id}`;
+        `/src/employerPages/JobPosts.html?company_id=${company.id}`;
 
     let associatesList = document.createElement("ul");
     for (let recruiter of associates) {

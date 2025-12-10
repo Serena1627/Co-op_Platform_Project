@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const companyId = companyData?.id;
     const mainPageLink = document.getElementById('main-page-link');
     if (mainPageLink) {
-        mainPageLink.href = `JobPosts.html?company_id=${companyData.id}`;
+        mainPageLink.href = `/src/employerPages/JobPosts.html?company_id=${companyData.id}`;
     }
     const title = document.querySelector(".container h1");
     const jobFilter = document.querySelector(".filters select:first-of-type");

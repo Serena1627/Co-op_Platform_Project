@@ -39,7 +39,7 @@ async function loadHomepage() {
 
     const mainPageLink = document.getElementById('main-page-link');
     if (mainPageLink) {
-        mainPageLink.href = `JobPosts.html?company_id=${recruiterData.company_id}`;
+        mainPageLink.href = `/src/employerPages/JobPosts.html?company_id=${recruiterData.company_id}`;
     }
 
     const recruiter = recruiterData;
