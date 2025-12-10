@@ -114,7 +114,7 @@ async function addResumeToList(resume) {
     leftContainer.className = "resume-left";
 
     const defaultCheck = document.createElement("input");
-    defaultCheck.id = 'default-${resume.id}'
+    defaultCheck.id = `default-${resume.id}`;
     defaultCheck.type = "radio";
     defaultCheck.name = "default-resume";
     defaultCheck.checked = resume.is_default;
@@ -149,6 +149,19 @@ async function addResumeToList(resume) {
     deleteButton.addEventListener("click", async () => {
         if (!confirm("Delete this resume?")) return;
 
+        const { data: resumeCountData } = await supabaseClient
+            .from("resume_files")
+            .select("id", { count: "exact" })
+            .eq("user_id", user.id);
+
+        if (resumeCountData.length <= 1) {
+            alert("You must have at least one resume. You cannot delete your only resume.");
+            return;
+        }
+
+
+        const wasDefault = resume.is_default;
+
         await supabaseClient.storage
             .from("resumes")
             .remove([resume.file_path]);
@@ -158,8 +171,25 @@ async function addResumeToList(resume) {
             .delete()
             .eq("id", resume.id);
 
-        li.remove();
+        if (wasDefault) {
+            const { data: latestResume, error: latestErr } = await supabaseClient
+                .from("resume_files")
+                .select("*")
+                .eq("user_id", user.id)
+                .order("id", { ascending: false })
+                .limit(1)
+                .single();
+
+            if (!latestErr && latestResume) {
+                await supabaseClient
+                    .from("resume_files")
+                    .update({ is_default: true })
+                    .eq("id", latestResume.id);
+            }
+        }
+        loadResumes();
     });
+
 
     li.appendChild(leftContainer);
     li.appendChild(deleteButton);
@@ -257,21 +287,49 @@ async function loadResumes() {
         deleteButton.innerText = "Delete";
 
         deleteButton.addEventListener("click", async () => {
-            if (!confirm("Delete this resume?")) {
+            if (!confirm("Delete this resume?")) return;
+
+            const { data: resumeCountData } = await supabaseClient
+                .from("resume_files")
+                .select("id", { count: "exact" })
+                .eq("user_id", user.id);
+
+            if (resumeCountData.length <= 1) {
+                alert("You must have at least one resume. You cannot delete your only resume.");
                 return;
             }
 
+
+            const wasDefault = resume.is_default;
+
             await supabaseClient.storage
                 .from("resumes")
-                .remove([ resume.file_path ]);
+                .remove([resume.file_path]);
 
             await supabaseClient
                 .from("resume_files")
                 .delete()
                 .eq("id", resume.id);
-            
-            li.remove();
+
+            if (wasDefault) {
+                const { data: latestResume, error: latestErr } = await supabaseClient
+                    .from("resume_files")
+                    .select("*")
+                    .eq("user_id", user.id)
+                    .order("id", { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (!latestErr && latestResume) {
+                    await supabaseClient
+                        .from("resume_files")
+                        .update({ is_default: true })
+                        .eq("id", latestResume.id);
+                }
+            }
+            loadResumes();
         });
+
         li.appendChild(leftContainer);
         li.appendChild(deleteButton);
         resumeList.appendChild(li);
