@@ -166,6 +166,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const applyBtn = document.getElementById("apply-btn");
     if (source === "applications") {
+        applyBtn.style.display = "none";
         const { data: userData } = await supabaseClient.auth.getUser();
         const user = userData?.user;
         
@@ -195,8 +196,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     });
                 }
             }
-
-            applyBtn.style.display = applicationData.status != "pending" ? "none" : "inline-block";
         } else {
             console.log("No user logged in.");
         }
