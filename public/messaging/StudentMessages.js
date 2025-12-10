@@ -1,4 +1,4 @@
-import { supabaseClient } from "../supabaseClient.js";
+import { supabaseClient } from "../../public/supabaseClient.js";
 
 const conversationsList = document.getElementById("conversations-list");
 const messagesContainer = document.getElementById("messages-container");

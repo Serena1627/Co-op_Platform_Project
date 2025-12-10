@@ -1,4 +1,4 @@
-import { supabaseClient } from "../supabaseClient.js";
+import { supabaseClient } from "../../public/supabaseClient.js";
 import { getDate } from "../components/coop-information.js";
 const FORCE_ENABLE_MESSAGES = true;
 const DRAG_DROP_RANKING_ENABLED = true;
@@ -98,7 +98,7 @@ async function init() {
 
     const mainPageLink = document.getElementById("main-page-link");
     if (mainPageLink) {
-      mainPageLink.href = `/src/employerPages/JobPosts.html?company_id=${jobRecord.company_id}`;
+      mainPageLink.href = `/public/employerPages/JobPosts.html?company_id=${jobRecord.company_id}`;
     }
 
     if (studentRecord.coop_number) {

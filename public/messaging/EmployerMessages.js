@@ -1,4 +1,4 @@
-import { supabaseClient } from "../supabaseClient.js";
+import { supabaseClient } from "../../public/supabaseClient.js";
 
 const studentSelect = document.getElementById("student-select");
 const startConvBtn = document.getElementById("start-conversation-btn");
@@ -41,7 +41,7 @@ async function loadInterviewApplications() {
 
   const mainPageLink = document.getElementById('main-page-link');
   if (mainPageLink) {
-    mainPageLink.href = `/src/employerPages/JobPosts.html?company_id=${jobs[0].company_id}`;
+    mainPageLink.href = `/public/employerPages/JobPosts.html?company_id=${jobs[0].company_id}`;
   }
 
   const recruiterJobIds = jobs.map(j => j.id);

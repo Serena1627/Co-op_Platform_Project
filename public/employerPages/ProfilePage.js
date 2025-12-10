@@ -1,4 +1,4 @@
-import { supabaseClient } from "../supabaseClient.js";
+import { supabaseClient } from "../../public/supabaseClient.js";
 
 
 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -51,7 +51,7 @@ async function loadProfile() {
     document.getElementById("primary_contact").textContent = company.primary_contact == user.id ? "True" : "False";
 
     document.getElementById("main-page-link").href =
-        `/src/employerPages/JobPosts.html?company_id=${company.id}`;
+        `/public/employerPages/JobPosts.html?company_id=${company.id}`;
 
     let associatesList = document.createElement("ul");
     for (let recruiter of associates) {

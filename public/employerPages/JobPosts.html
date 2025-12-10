@@ -17,7 +17,7 @@
         <div class="table-view" id="tableView">
             <div id="navbar-container"></div>
             <script>
-                fetch('../../src/components/EmployerNavbar.html')
+                fetch('../../public/components/EmployerNavbar.html')
                     .then(response => response.text())
                     .then(data => {
                         document.getElementById('navbar-container').innerHTML = data;
