@@ -3,7 +3,6 @@ import { supabaseClient } from "../supabaseClient.js";
 const recordsRoot = document.getElementById("records");
 const loadingEl = document.getElementById("loading");
 const totalCoopsEl = document.getElementById("total-coops");
-const userStatusEl = document.getElementById("user-status");
 const emptyState = document.getElementById("empty-state");
 const recordTpl = document.getElementById("record-template");
 
@@ -748,13 +747,11 @@ async function loadEmploymentRecords() {
       await supabaseClient.auth.getUser();
     if (userErr) {
       console.error("Auth error:", userErr);
-      userStatusEl.textContent = "Not signed in";
       loadingEl.textContent = "Please sign in to view your employment records.";
       return;
     }
 
     const user = userData.user;
-    userStatusEl.textContent = `Signed in as ${user.email}`;
 
     const { data: applications, error: appsErr } = await supabaseClient
       .from("current_applications")
