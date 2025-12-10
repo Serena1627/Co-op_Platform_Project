@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Date Controller</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 20px; border-radius: 6px; max-width: 350px; }
+        button { padding: 8px 14px; margin-top: 10px; }
+        #current-date { margin-top: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Set Co-op System Date</h1>
+
+    <div class="box">
+        <label for="date-input">Choose a date:</label><br>
+        <input type="date" id="date-input">
+
+        <button id="set-btn">Set Date</button>
+        <button id="reset-btn">Reset to Today</button>
+
+        <div id="current-date">Current system date: —</div>
+    </div>
+
+    <script type="module">
+        import { setDate, getDate } from "../public/components/coop-information.js";
+
+        const dateInput = document.getElementById("date-input");
+        const output = document.getElementById("current-date");
+        const setBtn = document.getElementById("set-btn");
+        const resetBtn = document.getElementById("reset-btn");
+
+        function refreshDisplay() {
+            const d = getDate();
+            output.textContent = "Current system date: " + d.toDateString();
+        }
+
+        setBtn.addEventListener("click", () => {
+            if (!dateInput.value) {
+                alert("Please pick a date.");
+                return;
+            }
+            setDate(dateInput.value);
+            refreshDisplay();
+        });
+
+        resetBtn.addEventListener("click", () => {
+            setDate(null);
+            refreshDisplay();
+        });
+
+    </script>
+</body>
+</html>
