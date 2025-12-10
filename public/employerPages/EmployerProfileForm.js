@@ -2,7 +2,7 @@ import { supabaseClient } from "../supabaseClient.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
-
+    
     if (!user) {
         alert("You are not logged in.");
         window.location.assign("../sign-in/login.html");

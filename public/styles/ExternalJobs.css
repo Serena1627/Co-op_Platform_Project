@@ -267,12 +267,10 @@ body {
         flex-direction: column;
         gap: 8px;
     }
-
     .job-footer {
         flex-direction: column;
         align-items: stretch;
     }
-
     .job-footer a {
         width: 100%;
     }

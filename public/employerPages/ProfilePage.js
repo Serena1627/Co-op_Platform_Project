@@ -1,4 +1,4 @@
-import { supabaseClient } from "../../public/supabaseClient.js";
+import { supabaseClient } from "../supabaseClient.js";
 
 
 const { data: { user } } = await supabaseClient.auth.getUser();
