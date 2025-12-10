@@ -195,7 +195,7 @@ async function deleteJobPosting(jobId) {
     
     
     try {
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
             .from("job_listings")
             .delete()
             .eq("id", jobId);
