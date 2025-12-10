@@ -68,6 +68,26 @@ async function loadJobData(jobId) {
     }
 }
 
+function formatQualificationsToArray(qualificationsText) {
+    if (!qualificationsText) return [];
+    
+    // Handle different formats
+    if (Array.isArray(qualificationsText)) {
+        return qualificationsText;
+    }
+    
+    // Split by newlines first (most common for textareas)
+    const lines = qualificationsText.split('\n');
+    
+    // If there are bullet points or numbers, clean them up
+    return lines
+        .map(line => {
+            // Remove bullet points, numbers, or dashes at the beginning
+            return line.replace(/^[\s]*[•\-\*\d\.\)]+[\s]*/, '').trim();
+        })
+        .filter(line => line.length > 0);
+}
+
 async function saveJobPosting(event) {
     event.preventDefault();
 
@@ -79,6 +99,12 @@ async function saveJobPosting(event) {
     }
 
     const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        alert("You are not logged in.");
+        window.location.assign("../sign-in/login.html");
+        return;
+    }
+
 
     const formData = {
         job_title: document.getElementById('job_title').value,
@@ -103,6 +129,8 @@ async function saveJobPosting(event) {
         allow_messaging: document.getElementById('allow_messaging').checked,
         contact_name: document.getElementById('contact_name').value || null,
     };
+    formData.job_qualifications = formatQualificationsToArray(formData.job_qualifications);
+    formData.perks = formatQualificationsToArray(formData.perks);
 
     try {
         if (currentEditingId) {
@@ -170,7 +198,7 @@ async function deleteJobPosting(jobId) {
     
     
     try {
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
             .from("job_listings")
             .delete()
             .eq("id", jobId);

@@ -3,7 +3,7 @@ import { getDate } from "../../components/coop-information.js";
 
 let selectedApplications = new Set();
 
-let currentDate = new Date(2025, 9, 29);
+let currentDate = getDate();
 
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -1415,7 +1415,6 @@ async function assignQAPositions(sortedQAs, availableSpots, jobId) {
             }
         }
     }
-    
     return assignments;
 }
 

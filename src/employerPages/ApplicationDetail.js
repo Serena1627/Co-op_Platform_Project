@@ -320,8 +320,8 @@ async function validateRanking() {
         .eq("job_id", applicationRecord.job_id)
         .eq("status", "ranked");
 
-    if (rankCount >= 5) {
-        alert("You may only rank up to five candidates.");
+    if (rankCount >= 3) {
+        alert("You may only rank up to three candidates.");
         return false;
     }
 
