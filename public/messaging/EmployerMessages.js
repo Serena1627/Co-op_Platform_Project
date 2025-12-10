@@ -6,7 +6,6 @@ const conversationsList = document.getElementById("conversations-list");
 const messagesContainer = document.getElementById("messages-container");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
-const fileInput = document.getElementById("file-input");
 const chatEmpty = document.getElementById("chat-empty");
 const chatPanel = document.getElementById("chat-panel");
 const chatStudentName = document.getElementById("chat-student-name");
@@ -344,7 +343,7 @@ async function loadMessages(conversationId) {
 
   const { data: messages, error: msgErr } = await supabaseClient
     .from("messages")
-    .select("id, conversation_id, sender_id, message_text, attachment_url, created_at")
+    .select("id, conversation_id, sender_id, message_text, created_at")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
 
@@ -368,15 +367,6 @@ async function loadMessages(conversationId) {
     p.className = "em-msg-body";
     p.textContent = m.message_text|| "";
     el.appendChild(p);
-
-    if (m.attachment_url) {
-      const a = document.createElement("a");
-      a.href = m.attachment_url;
-      a.target = "_blank";
-      a.className = "em-attachment";
-      a.textContent = "📎 Attachment";
-      el.appendChild(a);
-    }
 
     const t = document.createElement("div");
     t.className = "em-msg-time";
@@ -403,22 +393,12 @@ async function loadMessages(conversationId) {
 async function sendMessage() {
   if (!currentConversation) { alert("Select or start a conversation first."); return; }
   const text = messageInput.value.trim();
-  if (!text && fileInput.files.length === 0) return;
-  let attachmentUrl = null;
-  if (fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    const path = `${currentConversation.id}/${Date.now()}_${file.name}`;
-    const { data, error } = await supabaseClient.storage.from("chat_attachments").upload(path, file, { upsert: true });
-    if (error) { console.error(error); return; }
-    const { data: urlData } = supabaseClient.storage.from("chat_attachments").getPublicUrl(data.path);
-    attachmentUrl = urlData.publicUrl;
-  }
+  if (!text) return;
 
   const { error } = await supabaseClient.from("messages").insert([{
     conversation_id: currentConversation.id,
     sender_id: await getUserId(),
     message_text: text,
-    attachment_url: attachmentUrl,
     created_at: new Date().toISOString()
   }]);
 
@@ -428,7 +408,6 @@ async function sendMessage() {
   }
 
   messageInput.value = "";
-  fileInput.value = "";
   loadMessages(currentConversation.id);
 }
 
