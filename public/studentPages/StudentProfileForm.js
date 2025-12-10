@@ -1,4 +1,4 @@
-import { supabaseClient } from "../../supabaseClient.js";
+import { supabaseClient } from "../supabaseClient.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const isEditMode = urlParams.get('edit') === 'true';

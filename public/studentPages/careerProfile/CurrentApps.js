@@ -1,5 +1,5 @@
 import { supabaseClient } from "../../supabaseClient.js";
-import { getDate } from "../../components/coop-information.js";
+import { getDate, getCurrentCoopInformation } from "../../components/coop-information.js";
 
 let selectedApplications = new Set();
 
@@ -16,8 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     setupAppFilters();
     await loadApplications(user.id);
-    await calculateProgressTimeline(user.id);
-    
+    await calculateProgressTimeline(user.id); 
 });
 
 async function loadApplications(studentId) {
@@ -27,6 +26,7 @@ async function loadApplications(studentId) {
             .select(`
                 id,
                 status,
+                student_id,
                 applied_date,
                 job_id,
                 job_listings!inner (
@@ -526,10 +526,20 @@ async function submitApplicationWithResume(applicationId, resumeId) {
                 resume_submitted: resumeId,
                 applied_date: new Date().toISOString()
             })
-            .eq("id", applicationId);
+            .eq("id", applicationId)
+            .select();
         
         if (error){
             throw new Error(`Couldn't Update Application: ${error.message}`);
+        }
+
+        const { error: countError } = await supabaseClient.rpc(
+            'increment_applicant_count',
+            { job_uuid: data[0].job_id }
+        );
+
+        if (countError){
+            throw new Error(`Couldn't Update Job Listing: ${countError.message}`);
         }
         
         showNotification("Application submitted successfully!");
@@ -800,12 +810,55 @@ function createApplicationCard(application) {
     });
 
     const withdrawBtn = card.querySelector(".withdraw-btn");
-    withdrawBtn.addEventListener("click", () => withdrawApplication(application.id, card));
+    withdrawBtn.addEventListener("click", () => withdrawApplication(application, card));
 
     return card;
 }
 
-async function withdrawApplication(applicationId, cardElement) {
+async function withdrawApplication(application, cardElement) {
+    const { data: coopData, error: cycleError } = await supabaseClient
+        .from("student_profile")
+        .select("coop_cycle")
+        .eq("student_id", application.student_id)
+        .single();
+
+    if (cycleError || !coopData) {
+        console.error("Could not fetch student coop cycle.", cycleError);
+        throw new Error("Could not fetch student coop cycle.");
+    }
+    const currentCoopData = await getCurrentCoopInformation(coopData.coop_cycle, currentDate);
+    if (currentCoopData.stage_number <= 3 && application.status === 'pending') {
+
+        if (!confirm("Are you sure you want to remove this job from your current applications?")) {
+            return;
+        }
+
+        try {
+            const { error } = await supabaseClient
+                .from("current_applications")
+                .delete()
+                .eq("id", application.id);
+
+            if (error) {
+                console.error("Error withdrawing application:", error);
+                alert("Failed to remove application. Try again.");
+                return;
+            }
+
+            selectedApplications.delete(application.id);
+            cardElement.remove();
+            updateSelectApplyUI();
+
+            showNotification("Application removed successfully.");
+            return;
+
+        } catch (err) {
+            console.error("Unexpected error:", err);
+            alert("An unexpected error occurred. Please try again.");
+            return;
+        }
+    }
+
     if (!confirm("Are you sure you want to withdraw this application?")) {
         return;
     }
@@ -814,7 +867,7 @@ async function withdrawApplication(applicationId, cardElement) {
         const { error } = await supabaseClient
             .from("current_applications")
             .update({ status: 'withdrawn' })
-            .eq("id", applicationId);
+            .eq("id", application.id);
 
         if (error) {
             console.error("Error withdrawing application:", error);
@@ -830,11 +883,11 @@ async function withdrawApplication(applicationId, cardElement) {
         withdrawBtn.disabled = true;
         withdrawBtn.textContent = "Application Withdrawn";
 
-        selectedApplications.delete(applicationId);
+        selectedApplications.delete(application.id);
         cardElement.classList.remove("selected");
         updateSelectApplyUI();
 
-        showNotification("Application withdrawn successfully");
+        showNotification("Application withdrawn successfully.");
 
     } catch (err) {
         console.error("Unexpected error:", err);

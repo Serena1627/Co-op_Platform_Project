@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const backLink = document.querySelector(".back-link");
     if (source === "applications") {
-        backLink.href = "./careerProfile/CurrentApps.html";
+        backLink.href = "/public/studentPages/careerProfile/CurrentApps.html";
         backLink.innerHTML = "← Back to Current Applications";
     }
 
@@ -238,7 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 alert("Application submitted successfully!");
-                window.location.href = "../careerProfile/CurrentApps.html";
+                window.location.href = "/public/studentPages/careerProfile/CurrentApps.html";
 
             } catch (err) {
                 console.error("Unexpected error:", err);
